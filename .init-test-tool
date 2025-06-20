@@ -1,0 +1,4 @@
+{
+    "command": "npm run test",
+    "working_directory": "/home/kavia/workspace/code-generation/fairyfinance--magicmetrics-64825-96545db0/fairyfinance_magicmetrics_frontend"
+}
