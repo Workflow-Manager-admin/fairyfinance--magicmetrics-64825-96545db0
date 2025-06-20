@@ -16,6 +16,50 @@
   --btn-gradient: linear-gradient(90deg, #ffd700 0%, #ff76e5 55%, #7cebff 100%);
 }
 
+/* =================== */
+/* Flying Fairy Styles */
+/* =================== */
+.fairy-flight-container {
+  position: absolute;
+  left: 0;
+  top: 16px;
+  width: 100vw;
+  height: 90px;
+  pointer-events: none;
+  z-index: 300;
+  /* Keeps fairy above sparkle layer, but under the nav bar shadow. */
+  overflow: visible;
+}
+
+.fairy-figure {
+  position: absolute;
+  top: 12px;
+  left: 0;
+  width: 80px;
+  height: 54px;
+  /* SVG hardware acceleration for animation smoothness */
+  will-change: transform, filter;
+  filter:
+    drop-shadow(0 0 16px #ffd6fd55)
+    drop-shadow(0 0 6px #fffbeed9)
+    drop-shadow(0 0 33px #b47cff66);
+  opacity: 0.98;
+  /* Animate across the width of the viewport */
+  animation: fairy-fly 8.2s cubic-bezier(.53,.33,.16,.96) infinite;
+}
+
+@keyframes fairy-fly {
+  0% { transform: translateX(-92px) scale(1) rotate(-6deg);}
+  10% { filter: brightness(1.06) drop-shadow(0 0 18px #ffd700cc);}
+  21% { transform: translateX(22vw) scale(1.03) rotate(1deg);}
+  38% { filter: brightness(1.12) drop-shadow(0 0 38px #ff76e5ad);}
+  50% { transform: translateX(53vw) scale(1.04) rotate(-2deg);}
+  63% { filter: brightness(1.23) drop-shadow(0 0 40px #7cebffad);}
+  67% { transform: translateX(72vw) scale(1.025) rotate(2deg);}
+  90% { filter: brightness(1.12) drop-shadow(0 0 24px #ffd700c0);}
+  100% { transform: translateX(102vw) scale(1.008) rotate(-6deg);}
+}
+
 body {
   margin: 0;
   font-family: 'Inter', 'Roboto', 'Helvetica', 'Arial', cursive, sans-serif;
