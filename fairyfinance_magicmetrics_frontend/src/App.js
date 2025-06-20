@@ -7,6 +7,7 @@ import './LedgerDashboard.css';
 import FairyAnimation from "./FairyAnimation";
 import FairyWisdomQuote from "./FairyWisdomQuote";
 import FairyCatWidget from "./FairyCatWidget";
+import FairyAvatar from "./FairyAvatar";
 
 /**
  * Sparkle animation overlay SVG
@@ -86,9 +87,13 @@ function App() {
       </div>
       <nav className="navbar">
         <div className="container">
-          <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-            <div className="logo" style={{ position: "relative" }}>
-              <span className="logo-symbol">*</span> ToothFairy Ledger
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: "center", width: '100%' }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "29px" }}>
+              <div className="logo" style={{ position: "relative" }}>
+                <span className="logo-symbol">*</span> ToothFairy Ledger
+              </div>
+              {/* Magical Avatar Widget */}
+              <FairyAvatar seed="Fairy123" size={50} />
             </div>
             <button className="btn sparkle-btn">
               <span role="img" aria-label="wand" style={{ marginRight: 6 }}>🪄</span>
