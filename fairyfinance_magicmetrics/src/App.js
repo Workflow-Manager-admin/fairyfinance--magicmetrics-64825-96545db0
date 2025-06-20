@@ -5,6 +5,7 @@ import MeetAFairy from "./MeetAFairy";
 import ToothFairyChatbot from "./ToothFairyChatbot";
 import FairyJokeOrFact from "./FairyJokeOrFact";
 import FairyQuoteCard from "./FairyQuoteCard";
+import FairyWeatherCard from "./FairyWeatherCard";
 
 /*
   Sparkle animation overlay with fairy-dust drift & more varied magical flair!
@@ -480,6 +481,8 @@ function App() {
               <section className="magical-bg">
                 <StatsAndNotes stats={stats} colors={COLORS} createMagicalIcon={createMagicalIcon} />
               </section>
+              {/* --- Fairy Weather Card lives low in the layout --- */}
+              <FairyWeatherCard />
             </>
           )}
         </div>
