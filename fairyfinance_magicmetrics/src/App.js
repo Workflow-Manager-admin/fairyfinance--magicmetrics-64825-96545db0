@@ -1,6 +1,42 @@
 import React, { useState, useMemo, useEffect } from "react";
 import "./App.css";
 
+/*
+  Sparkle animation overlay to add magic dust to the background.
+*/
+function MagicSparkleOverlay({ num = 24 }) {
+  const [sparkles, setSparkles] = useState([]);
+  useEffect(() => {
+    // randomize initial positions, duration, delays
+    const arr = Array.from({ length: num }).map((_, i) => {
+      const left = Math.random() * 100;
+      const top = 90 + Math.random() * 8;
+      const dur = 2.8 + Math.random() * 2.6;
+      const delay = Math.random() * 5;
+      const scale = 0.7 + Math.random() * 0.75;
+      return { left, top, dur, delay, scale, key: i };
+    });
+    setSparkles(arr);
+  }, [num]);
+  return (
+    <div className="sparkle-bg" aria-hidden>
+      {sparkles.map(({ left, top, dur, delay, scale, key }) => (
+        <div
+          key={key}
+          className="sparkle-dot"
+          style={{
+            left: `${left}%`,
+            bottom: `${top}%`,
+            animationDuration: `${dur}s`,
+            animationDelay: `${delay}s`,
+            transform: `scale(${scale})`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 /**
  * Fetch a random fairy gif from the GIPHY API
  */
@@ -207,119 +243,60 @@ function App() {
     </span>
   );
 
-  // === Fairy Gif Banner Block: ensure visible at very top, above main nav/header ===
-
-  const fairyBannerBlock = (
-    <div
-      style={{
-        width: "100%",
-        background:
-          "linear-gradient(90deg, #f3e6fa 0%, #ffe0fa 45%, #d1f9ff 100%)",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        minHeight: 110,
-        justifyContent: "center",
-        borderBottom: `3px double ${COLORS.accent}`,
-        boxShadow: "0 4px 22px 4px #f5daff47",
-        position: "relative",
-        zIndex: 1002,
-        padding: "12px 0 8px 0"
-      }}
-    >
-      <div style={{
-        fontFamily: "'Snell Roundhand', cursive",
-        color: COLORS.accent,
-        fontSize: "1.24em",
-        textShadow: "0 0 4px #fff,0 2px 12px #ffd70099",
-        marginBottom: 6,
-        fontWeight: 700,
-        letterSpacing: ".05em"
-      }}>
-        {/* Instruction for users */}
-        ✨ Magical Fairy GIF appears here, atop FairyFinance & MagicMetrics! ✨<br />
-        <span style={{
-          fontFamily: "serif",
-          color: COLORS.secondary,
-          fontSize: "0.99em",
-          fontWeight: 500
-        }}>
-          {gifLoading || gifError
-            ? "Look above the golden header to glimpse today's fairy magic!"
-            : "See the enchanting fairy gif above – new sparkle with every reload!"}
-        </span>
-      </div>
-      {/* Loading/Success/Error gif states */}
-      <div style={{
-        minHeight: 50,
-        width: "100%",
-        textAlign: "center",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        marginBottom: 2,
-        position: "relative"
-      }}>
-        {gifLoading && (
-          <div style={{
-            fontSize: "1.4em",
-            color: COLORS.accent,
-            animation: "spin 2.5s linear infinite"
-          }}>
-            <span role="img" aria-label="fairy-sparkle">🧚‍♀️</span>
+  // === Magical Fairy Gif Crystal Ball Block ===
+  const fairyCrystalBallBlock = (
+    <div style={{
+      width: "100%",
+      display: "flex",
+      justifyContent: "center",
+      padding: "28px 0 8px 0",
+      position: "relative",
+      zIndex: 1003,
+      // pastel fade for header
+      background:
+        "linear-gradient(120deg, #f9eaffcc 0%, #fffbe9bb 58%, #f9f5ff88 100%)",
+      marginBottom: "-18px",
+    }}>
+      <div className="crystal-ball" aria-label="Magical crystal ball holding a fairy gif">
+        <div className="crystal-sphere">
+          {gifLoading && (
             <span style={{
-              marginLeft: 8, color: COLORS.secondary,
-              fontWeight: 600, fontStyle: "italic", fontFamily: "'Snell Roundhand', cursive"
-            }}>Summoning pixie dust...</span>
-          </div>
-        )}
-        {gifError && (
-          <div style={{
-            color: COLORS.secondary,
-            background: "#fff5fd",
-            borderRadius: "17px",
-            border: "2.5px dashed #e5bcff",
-            padding: "10px 34px",
-            margin: "0 auto",
-            fontWeight: 600,
-            fontFamily: "'Snell Roundhand', cursive",
-            textShadow: "0 0 10px #fff,0 2px 9px #ff69b4"
-          }}>
-            🧚‍♀️ Oops! No fairy could be conjured.<br />
-            <span style={{ color: COLORS.accent, fontSize: "1.01em" }}>{gifError}</span>
-            <div style={{ fontSize: "0.98em", color: "#985ca0" }}>
-              Try reloading the page for a fresh sprinkle of magic!
-            </div>
-          </div>
-        )}
-        {!gifLoading && !gifError && gifUrl && (
-          <img
-            src={gifUrl}
-            alt={gifAlt}
-            style={{
-              maxHeight: 95,
-              maxWidth: "98vw",
-              borderRadius: "1.5em 2.2em 0.8em 2.7em",
-              border: `3px solid #ffe0fa`,
-              boxShadow: `0 3px 22px 3px ${COLORS.primary}55,0 0px 0px 10px #e5e5fa33`,
-              background: "#fffdfa",
-              display: "block",
-              margin: "0 auto"
-            }}
-          />
-        )}
+              fontSize: "2em",
+              color: COLORS.accent,
+              filter: "drop-shadow(0 0 18px #ffd700cc)",
+              fontFamily: "'Snell Roundhand', cursive"
+            }}>
+              🧚‍♀️
+            </span>
+          )}
+          {gifError && (
+            <span style={{
+              color: COLORS.secondary,
+              fontWeight: 700,
+              fontFamily: "'Snell Roundhand', cursive",
+              textShadow: "0 0 8px #fff,0 0 24px #ff69b470"
+            }}>
+              🧚‍♀️<br />No magic!<br />
+              <span style={{ fontSize: ".92em", color: COLORS.accent }}>{gifError}</span>
+            </span>
+          )}
+          {!gifLoading && !gifError && gifUrl && (
+            <img
+              src={gifUrl}
+              alt={gifAlt}
+              draggable={false}
+            />
+          )}
+          <div className="sphere-sparkle" />
+          <span className="sphere-star" role="img" aria-label="sparkle">✨</span>
+        </div>
+        <div className="crystal-bottom"></div>
+        <div className="crystal-ball-footer">
+          {gifLoading ? "Summoning pixie dust..." : gifError ? "Try again soon!" : "Your fairy companion"}
+        </div>
       </div>
-      <style>
-        {`
-        @keyframes spin {
-          0% { transform: rotateZ(0deg);}
-          100% { transform: rotateZ(360deg);}
-        }
-        `}
-      </style>
     </div>
   );
-
 
   // PUBLIC_INTERFACE
   return (
@@ -327,38 +304,27 @@ function App() {
       className="app"
       style={{
         minHeight: "100vh",
-        background: "linear-gradient(120deg,#fffbea 0%, #f5daff 80%)",
+        background: "transparent",
         fontFamily:
           "'Snell Roundhand', 'Inter', 'Roboto', 'Helvetica', 'Arial', cursive, sans-serif"
       }}
     >
-      {/* --- Fairy Gif Magical Banner --- */}
-      {fairyBannerBlock}
+      <MagicSparkleOverlay num={26} />
+      {/* --- Crystal Ball with Magical Fairy Gif --- */}
+      {fairyCrystalBallBlock}
       {/* --- Main navigation & rest of app --- */}
       <nav
         className="navbar"
-        style={{
-          background: COLORS.primary,
-          borderBottom: `2.5px solid ${COLORS.accent}`,
-          position: "sticky",
-          top: 0,
-          zIndex: 1001
-        }}
+        style={{}}
       >
         <div className="container" style={{ maxWidth: "1024px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
-            <div className="logo" style={{ fontFamily: "'Snell Roundhand', cursive", color: COLORS.accent }}>
-              <span className="logo-symbol" style={{ fontSize: "1.4em" }}>🧚‍♀️</span>
+            <div className="logo">
+              <span className="logo-symbol">🧚‍♀️</span>
               FairyFinance & MagicMetrics
             </div>
             <button
               className="btn"
-              style={{
-                background: COLORS.secondary,
-                color: COLORS.primary,
-                fontWeight: "700",
-                letterSpacing: "0.03em",
-              }}
               onClick={() => setShowReport((v) => !v)}
               aria-label="Show Magical Report"
             >
@@ -368,26 +334,17 @@ function App() {
         </div>
       </nav>
       <main>
-        {/* --- rest of app unchanged --- */}
-        <div className="container" style={{ maxWidth: "1024px", paddingTop: "110px" }}>
-          <section style={magicalBackground}>
-            <h1
-              className="title"
-              style={{
-                fontSize: "2.9rem",
-                marginBottom: "0.5rem",
-                color: COLORS.accent,
-                fontFamily: "'Snell Roundhand', serif",
-                textShadow: `0 2px 10px ${COLORS.primary}99,0 3px 5px ${COLORS.accent}33`,
-              }}
-            >
+        {/* --- rest of app with magical overlays --- */}
+        <div className="container" style={{ maxWidth: "1024px", paddingTop: "78px" }}>
+          <section className="magical-bg">
+            <h1 className="title">
               FairyFinance <span style={{ color: COLORS.primary }}>&</span> MagicMetrics
               {createMagicalIcon()}
             </h1>
-            <p className="subtitle" style={{ fontWeight: 500, fontSize: "1.25rem", color: COLORS.secondary }}>
+            <p className="subtitle">
               The Whimsical Ledger of Tooth Fairy Delights
             </p>
-            <div className="description" style={{ maxWidth: "450px", margin: "0 auto", color: "#555", fontWeight: 500 }}>
+            <div className="description">
               Track tooth earnings, magical bonuses, and economic adventures of fairyland! Enter every lost tooth, leave enchanted notes, and see magical stats come alive with sparkling charts and fairy audit reports.
             </div>
           </section>
@@ -395,17 +352,14 @@ function App() {
             <MagicalReport entries={entries} stats={stats} colors={COLORS} createMagicalIcon={createMagicalIcon} />
           ) : (
             <>
-              <section
-                style={{
-                  ...magicalBackground,
-                  margin: "0 0 2.2rem 0",
-                  background: `linear-gradient(117deg, #fffbe0 66%, ${COLORS.secondary}22 130%)`,
-                }}
-              >
+              <section className="magical-bg" style={{
+                margin: "0 0 2.2rem 0",
+                background: `linear-gradient(117deg, #fffbe0 66%, ${COLORS.secondary}22 130%)`,
+              }}>
                 <h2 style={{ color: COLORS.accent, fontWeight: "700", fontSize: "2.1rem", marginBottom: "0.9rem", fontFamily: "'Snell Roundhand', cursive" }}>
                   {createMagicalIcon()} Add Tooth Fairy Ledger Entry
                 </h2>
-                <form onSubmit={addEntry} id="fairy-form" style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
+                <form onSubmit={addEntry} id="fairy-form">
                   <MagicalInput label="Date" type="date" name="date" value={form.date} onChange={handleInput} required />
                   <MagicalInput label="Child Name" type="text" name="childName" value={form.childName} onChange={handleInput} required />
                   <MagicalInput label="Age" type="number" name="age" value={form.age} onChange={handleInput} required min={1} />
@@ -429,15 +383,18 @@ function App() {
                     placeholder="e.g. Left a magic star!"
                   />
                   <div style={{ flex: 1, minWidth: "160px", display: "flex", alignItems: "end" }}>
-                    <button type="submit" className="btn" style={{ background: COLORS.primary, color: COLORS.accent, fontWeight: "700", width: "100%" }}>
+                    <button type="submit" className="btn" style={{ fontWeight: "700", width: "100%" }}>
                       {createMagicalIcon()} Add to Ledger
                     </button>
                   </div>
                 </form>
               </section>
 
-              <section style={{ ...magicalBackground, margin: 0 }}>
-                <h2 style={{ color: COLORS.secondary, fontSize: "2rem", fontWeight: "800", letterSpacing: ".01em", marginBottom: "1.2em", textShadow: `0 0 8px ${COLORS.accent}66` }}>
+              <section className="magical-bg" style={{ margin: 0 }}>
+                <h2 style={{
+                  color: COLORS.secondary, fontSize: "2rem", fontWeight: "800", letterSpacing: ".01em", marginBottom: "1.2em",
+                  textShadow: `0 0 8px ${COLORS.accent}66`
+                }}>
                   {createMagicalIcon()} Magical Tooth Fairy Ledger
                 </h2>
                 <LedgerTable
@@ -449,7 +406,7 @@ function App() {
               </section>
 
               <section style={{ display: "flex", gap: "2em", flexWrap: "wrap", margin: "1.5rem 0" }}>
-                <div style={{ flex: "2 1 320px", ...magicalBackground }}>
+                <div className="magical-bg" style={{ flex: "2 1 320px" }}>
                   <h3 style={{ fontSize: "1.3rem", color: COLORS.secondary, marginBottom: 12 }}>
                     {createMagicalIcon()} Tooth Economy Trends
                   </h3>
@@ -463,7 +420,7 @@ function App() {
                   />
                 </div>
 
-                <div style={{ flex: "1 1 245px", ...magicalBackground, minWidth: 200 }}>
+                <div className="magical-bg" style={{ flex: "1 1 245px", minWidth: 200 }}>
                   <h3 style={{ fontSize: "1.16rem", color: COLORS.primary, marginBottom: 8 }}>
                     {createMagicalIcon()} Teeth Lost Timeline
                   </h3>
@@ -477,7 +434,7 @@ function App() {
                 </div>
               </section>
 
-              <section style={{ ...magicalBackground }}>
+              <section className="magical-bg">
                 <StatsAndNotes stats={stats} colors={COLORS} createMagicalIcon={createMagicalIcon} />
               </section>
             </>
@@ -975,4 +932,4 @@ function MagicalReport({ entries, stats, colors, createMagicalIcon }) {
   );
 }
 
-export default App; 
+export default App;
