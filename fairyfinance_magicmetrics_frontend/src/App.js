@@ -107,9 +107,6 @@ function App() {
       <main style={{ zIndex: 2, position: "relative" }}>
         <div className="container">
 
-          {/* Magical Fairy Designer: Prominent widget for all users */}
-          <FairyDesigner />
-
           <div className="hero">
             {/* Fairy Cat Widget - Whimsical sparkly Cataas cat! */}
             <FairyCatWidget />
@@ -128,7 +125,11 @@ function App() {
           </div>
           {/* Magical, sparkling input forms for age, lost teeth, and dates */}
           {!showDashboard && (
-            <FairyInputForms onSubmit={handleFormSubmit} />
+            <>
+              <FairyInputForms onSubmit={handleFormSubmit} />
+              {/* Move FairyDesigner directly after input forms */}
+              <FairyDesigner />
+            </>
           )}
           {/* Magical stat dashboard appears after submission */}
           {showDashboard && (
