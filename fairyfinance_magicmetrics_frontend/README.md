@@ -1,13 +1,13 @@
-# Lightweight React Template for KAVIA
+# ToothFairy Ledger Frontend
 
-This project provides a minimal React template with a clean, modern UI and minimal dependencies.
+This project provides the magical frontend for the **ToothFairy Ledger**, a whimsical React app with a clean, sparkling UI, minimal dependencies, and fairy-tale inspired theming.
 
 ## Features
 
-- **Lightweight**: No heavy UI frameworks - uses only vanilla CSS and React
-- **Modern UI**: Clean, responsive design with KAVIA brand styling
-- **Fast**: Minimal dependencies for quick loading times
-- **Simple**: Easy to understand and modify
+- **Whimsical Design**: Light, magical, and fairy-inspired UI
+- **Modern React**: Created using React and pure CSS
+- **Fast & Minimal**: Designed to be responsive and efficient, with few dependencies
+- **Easy to Customize**: Built for playful extension and magical new features
 
 ## Important Note: Babel Configuration
 

@@ -32,7 +32,10 @@ function SparkleStars() {
   );
 }
 
-// PUBLIC_INTERFACE
+/**
+ * PUBLIC_INTERFACE
+ * ToothFairy Ledger main component.
+ */
 function App() {
   return (
     <div className="app">
@@ -66,7 +69,7 @@ function App() {
         <div className="container">
           <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
             <div className="logo" style={{ position: "relative" }}>
-              <span className="logo-symbol">*</span> FairyFinance & MagicMetrics
+              <span className="logo-symbol">*</span> ToothFairy Ledger
             </div>
             <button className="btn sparkle-btn">
               <span role="img" aria-label="wand" style={{ marginRight: 6 }}>🪄</span>
@@ -82,9 +85,9 @@ function App() {
             <div className="subtitle">
               Whimsical Wizardry for Enchanted Accounting & Dreamy Metric Reports
             </div>
-            <h1 className="title">FairyFinance & MagicMetrics</h1>
+            <h1 className="title">ToothFairy Ledger</h1>
             <div className="description">
-              Dive into a world of sparkle! Track teeth, coins, dreams, and magic—experience Fairyland’s most mystical finance and metrics dashboard, straight from the Tooth Fairy’s personal ledger.✨
+              Dive into a world of sparkle! Track teeth, coins, dreams, and all things magical—experience Fairyland’s most mystical ledger and enchanted reporting dashboard, straight from the Tooth Fairy’s personal collection.✨
             </div>
             <button className="btn btn-large">
               <span role="img" aria-label="fairy">🧚‍♀️</span> Begin the Magic
