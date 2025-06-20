@@ -441,11 +441,11 @@ function App() {
 
               {/* Meet a Tooth Fairy Card - Simple API Integration */}
               <MeetAFairy />
-              
+
               {/* Magical Joke Card: prominently show fun API card */}
               <FairyJokeOrFact />
 
-              {/* Magical Inspirational Quote Card: quotable.io API */}
+              {/* Magical Inspirational Quote Card: whimsical style, below/near */}
               <FairyQuoteCard />
 
               <section style={{ display: "flex", gap: "2em", flexWrap: "wrap", margin: "1.5rem 0" }}>
