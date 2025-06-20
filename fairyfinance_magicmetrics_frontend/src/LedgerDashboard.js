@@ -149,6 +149,11 @@ function LedgerDashboard({ ledgerInput }) {
       <div className="ledger-widgets-row">
         <SparkleCoinEarnings amount={sparkleEarnings} />
         <FairyAuditNote note={auditNote} />
+        <FairyStatsPieChart
+          coins={sparkleEarnings}
+          teethLost={ledgerInput?.teethLost || 0}
+          age={ledgerInput?.age || 0}
+        />
       </div>
       <div className="ledger-widgets-row">
         <EconomyTrendChart data={economyTrend} />
@@ -228,6 +233,10 @@ function FairyAuditNote({ note }) {
   );
 }
 
+/**
+ * PUBLIC_INTERFACE
+ * EconomyTrendChart - sparkly chart card with QuickChart.io image for earnings over time
+ */
 function EconomyTrendChart({ data }) {
   // Magical line chart (SVG) plus new QuickChart.io image for lively dashboard!
 
@@ -576,6 +585,135 @@ function FunFactWidget({ fact, weather, loadingFact, loadingWeather }) {
         }
         `}
       </style>
+    </div>
+  );
+}
+
+/**
+ * PUBLIC_INTERFACE
+ * FairyStatsPieChart - Magical pie/doughnut chart widget using QuickChart.io images
+ * @param {object} props
+ *   - coins: number (Sparkle Coin earnings)
+ *   - teethLost: number
+ *   - age: number
+ */
+function FairyStatsPieChart({ coins = 0, teethLost = 0, age = 0 }) {
+  // Use fairy palette colors, magical gradient bg and sparkly border
+  const chartConfig = {
+    type: "doughnut",
+    data: {
+      labels: ["Sparkle Coins", "Teeth Lost", "Fairy Age"],
+      datasets: [
+        {
+          data: [coins, teethLost, age],
+          backgroundColor: [
+            "#ffd700",
+            "#b47cff",
+            "#ff76e5"
+          ],
+          borderColor: [
+            "#ffe066",
+            "#7cebff",
+            "#cbb8f8"
+          ],
+          borderWidth: 4,
+          hoverOffset: 11
+        }
+      ]
+    },
+    options: {
+      plugins: {
+        legend: {
+          display: true,
+          labels: {
+            color: "#b47cff",
+            font: { size: 15, family: "Purple Purse, cursive" },
+            boxWidth: 22,
+            padding: 16
+          }
+        },
+        title: {
+          display: false
+        }
+      },
+      cutout: "66%",
+      layout: { padding: 12 }
+    }
+  };
+  const bg = "bg=rgba(255,251,227,0.96)";
+  const size = "width=210&height=210&devicePixelRatio=1.8";
+  const sparkle = "format=png&version=3.0.0";
+  const chartUrl =
+    `https://quickchart.io/chart?${size}&${bg}&${sparkle}&c=${encodeURIComponent(
+      JSON.stringify(chartConfig)
+    )}`;
+
+  return (
+    <div
+      className="stat-widget"
+      style={{
+        background: "linear-gradient(115deg,#fffbe3 64%,#ffd6fd 100%)",
+        border: "2px dotted #ffd700cc",
+        minWidth: 200,
+        maxWidth: 270,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        boxShadow: "0 0 19px #ffd70069, 0 0 7px #b47cff88",
+        marginBottom: 0,
+        position: "relative",
+        zIndex: 3,
+        overflow: "visible"
+      }}
+    >
+      <div className="stat-title" style={{
+        fontSize: "1.02em",
+        color: "#b47cff",
+        marginBottom: 7,
+        letterSpacing: 1.1,
+        textShadow: "0 2px 8px #ffd70070"
+      }}>
+        Fairy Stats Breakdown
+        <span aria-hidden="true" style={{ marginLeft: 7, fontSize: 21, verticalAlign: "middle", filter: "drop-shadow(0 0 7px #b47cffee)" }}>✨</span>
+      </div>
+      <img
+        src={chartUrl}
+        alt="Magical Fairy Stats Pie Chart"
+        width={184}
+        height={184}
+        style={{
+          width: "82%",
+          maxWidth: 184,
+          minHeight: 114,
+          margin: "0 auto",
+          display: "block",
+          borderRadius: "50%",
+          boxShadow: "0 3px 21px #ffd70036, 0 0 16px #ff76e590, 0 1px 5px #b47cff39",
+          background: "#fffbe9",
+          border: "2.1px solid #ff76e5bb",
+          filter: "drop-shadow(0 0 15px #ffd6fd57)"
+        }}
+      />
+      <div style={{
+        color: "#b47cff",
+        marginTop: 6,
+        fontSize: "0.97em",
+        fontWeight: 500,
+        textAlign: "center"
+      }}>
+        Total Coins, Teeth Lost, and Magical Age
+      </div>
+      <style>
+        {`
+        @media (max-width: 420px) {
+          .stat-widget img { max-width: 98vw; }
+        }
+        `}
+      </style>
+      {/* Decorative SVG sparkle */}
+      <svg aria-hidden="true" width="27" height="27" style={{ position: "absolute", left: -12, top: 8, opacity: 0.81 }}>
+        <polygon points="14,3 17,12 25,13 17,17 20,24 14,19 8,24 11,17 3,13 11,12" fill="#ff76e5" />
+      </svg>
     </div>
   );
 }
