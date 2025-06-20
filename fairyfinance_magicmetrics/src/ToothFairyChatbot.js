@@ -22,87 +22,73 @@ import "./App.css";
   -------------------------------------------------------------------------------------------
 */
 
-/* --- Fairy-themed scripted reply logic --- */
-function getFairyReply(userText) {
-  // Define rules: match on keywords & fallback to magic
-  const rules = [
-    {
-      test: (t) => /lost|came out|fell out|loose tooth|wiggle/.test(t),
-      reply: [
-        "✨ Flutter flutter! Well done on losing a tooth! Put it under your pillow for fairy fun tonight!",
-        "How magical—a shiny new tooth for the fairy castle! Dream big and sleep well! ✨",
-        "Hooray—a tooth for Fairyland! Sleep tight and let the fairy magic begin.",
-      ],
-    },
-    {
-      test: (t) => /how much|money|coin|gold|worth/.test(t),
-      reply: [
-        "The amount of fairy gold depends on your tooth's sparkle! Bravery gets bonus coins. 🪙✨",
-        "Sometimes you'll get extra for a super shiny tooth—surprises are fairy magic! 🌈",
-        "Gold coins and fairy dust—what a combination! Each tooth is valued for its magic.",
-      ],
-    },
-    {
-      test: (t) => /hello|hi|hey|who are you|hi fairy|hello fairy|greetings|good morning|good night/.test(t),
-      reply: [
-        "Hello, dreamer! I'm your Tooth Fairy friend—what magic teethy question do you have?",
-        "Hi there! Fairy wings flutter when you chat with me—ask away!",
-        "Magical greetings! 🌟 What wonders can I answer tonight?",
-      ],
-    },
-    {
-      test: (t) => /pain|hurt|scared|afraid|nervous|bleed|ouch|cry/.test(t),
-      reply: [
-        "Oh, brave one! Losing a tooth is magical. Fairy dust makes it easy. You'll get treasure for your bravery! 🦷💜",
-        "It's okay to feel a bit scared—fairies watch over you! Soon you'll have a grown-up smile! 🌟",
-        "Even when it feels a bit uncomfortable, you're doing something magical! Fairyland is proud of you.",
-      ],
-    },
-    {
-      test: (t) => /when|tonight|visit|what time|will you|coming/.test(t),
-      reply: [
-        "The Tooth Fairy usually visits when dreamy sleep arrives—keep your eyes closed for extra sparkle!",
-        "I'll visit as soon as the stars twinkle bright and you drift off into fairy dreams.",
-      ],
-    },
-    {
-      test: (t) => /who|your name|are you real|where live|who are you/.test(t),
-      reply: [
-        "I'm the magical Tooth Fairy! I collect shining teeth to build castles of dreams.",
-        "I flutter between pillows and moonbeams—making sure every lost tooth is properly sprinkled with fairy dust.",
-        "My name changes with every twinkle, but my magic is always the same!",
-      ],
-    },
-    {
-      test: (t) => /tooth fairy|fairy/.test(t),
-      reply: [
-        "That's me! I love sparkles, gold coins, and kind wishes under pillows.",
-        "Fairies are always near, especially when a tooth is ready for a magical adventure.",
-      ],
-    },
-    {
-      test: (t) => /can i|may i|is it ok|should i/.test(t),
-      reply: [
-        "You can always believe in fairy magic! If you have a question, I'm always here to help.",
-        "As long as your heart is full of wonder, anything is possible in Fairyland!",
-      ],
-    },
-    {
-      test: () => true, // fallback
-      reply: [
-        "Every question is a sprinkle of curiosity! Fairy wings are always near—ask anything about teeth magic!",
-        "That's a sparkly question! Fairyland is full of surprises—just like you!",
-        "I may not know everything, but I do know a little fairy dust helps every day!",
-      ],
-    },
+/* --- Magical DuckDuckGo-powered fairy reply logic --- */
+
+// PUBLIC_INTERFACE
+async function getFairyReplyDuckDuckGo(userText) {
+  /**
+   * Returns a magical reply based on DuckDuckGo Instant Answer API.
+   * Fallbacks to whimsy if API returns nothing useful or is unreachable.
+   */
+  // CORS: Try fetching directly; handle errors/fallback.
+  const endpoint = `https://api.duckduckgo.com/?q=${encodeURIComponent(userText)}&format=json`;
+  const magFallbacks = [
+    "Every question is a sprinkle of curiosity! Fairy wings are always near—ask anything about teeth magic!",
+    "That's a sparkly question! Fairyland is full of surprises—just like you!",
+    "I may not know everything, but I do know a little fairy dust helps every day!",
+    "If you believe, magic is always close… Ask me about teeth, coins, or fairies!",
+    "Flutter flutter! Sometimes even fairies don't know the answer, but they do know how to sparkle!",
   ];
-  const clean = (userText || "").toLowerCase().trim();
-  const rule = rules.find((r) => r.test(clean));
-  if (rule) {
-    const msgs = rule.reply;
-    return msgs[Math.floor(Math.random() * msgs.length)];
+  try {
+    const resp = await fetch(endpoint, {
+      headers: {
+        "Accept": "application/json"
+      }
+    });
+    // Possible CORS? If fetch status is 0 or opaque, can't access .json():
+    if (!resp.ok) throw new Error("Network resp not OK");
+    const data = await resp.json();
+
+    // See if we have an answer: prioritize AbstractText, Answer, then RelatedTopics
+    let reply = "";
+    if (data?.AbstractText) reply = data.AbstractText;
+    else if (data?.Answer) reply = typeof data.Answer === "string" ? data.Answer : "";
+    // Also try extracting from a related topic
+    else if (
+      data?.RelatedTopics &&
+      Array.isArray(data.RelatedTopics) &&
+      data.RelatedTopics.length &&
+      data.RelatedTopics[0].Text
+    )
+      reply = data.RelatedTopics[0].Text;
+
+    // If we ever hit DDG "No instant answer" string, treat as no result
+    if (typeof reply === "string" && reply.trim().length > 0 && !/^no instant answer/i.test(reply)) {
+      return reply;
+    }
+    // No meaningful result -- fallback to a fairy magic message
+    return magFallbacks[Math.floor(Math.random() * magFallbacks.length)];
+  } catch (err) {
+    // Network or CORS error -- check if probably CORS block
+    if (err && err.message && (err.message.includes("Failed to fetch") || err.message.includes("Network"))) {
+      // Detect likely CORS error by inspecting the fetch error and protocol
+      // If running locally, probably CORS if not on HTTPS
+      const isHttp = window.location.protocol === "http:";
+      if (isHttp) {
+        // CORS! Notify user
+        return (
+          "Oh no! Fairy magic hit a wall (CORS network error). " +
+          "The DuckDuckGo Instant Answer API doesn't allow fairy wings to fetch it directly from browsers over HTTP in this magical land. Please try again from a 'secure' fairyland (https/production), or ask your parent for help."
+        );
+      }
+      // Otherwise fallback with general error
+      return (
+        "Fairy magic could not reach the answer crystal ball due to a network spell! " +
+        "Try again soon or ask your parent for help. ✨"
+      );
+    }
+    return magFallbacks[Math.floor(Math.random() * magFallbacks.length)];
   }
-  return "The fairy magic feels confused! Try rewording your question. 🧚";
 }
 
 /* -- Chat state utilities (persist for user session, never sent externally) -- */
@@ -132,7 +118,7 @@ const chatBubbleColors = {
 };
 
 const defaultPromptMsg =
-  "Ask anything about your tooth, coins, or fairyland! (Powered by magical fairy wisdom ✨)";
+  "Ask anything about your tooth, coins, or fairyland! (Powered by real-world magic from DuckDuckGo ✨)";
 
 /* -- MAIN CHATBOT FUNCTION -- */
 /*
@@ -223,7 +209,7 @@ function ToothFairyChatbot() {
     );
   }
 
-  // --- Chat send handler ---
+  // --- Chat send handler (fetches DuckDuckGo API, uses magical fallback) ---
   async function handleSend(e) {
     e && e.preventDefault();
     setError("");
@@ -241,16 +227,22 @@ function ToothFairyChatbot() {
       setInput("");
       setLoading(true);
 
-      // --- 100% local fairy reply logic ---
-      // (simulate "thinking" delay for magic effect)
-      setTimeout(() => {
-        const fairyReply = getFairyReply(question);
-        setChat((prev) => [
-          ...prev,
-          { from: "fairy", text: fairyReply, ts: Date.now() },
-        ]);
-        setLoading(false);
-      }, 460 + Math.random() * 340);
+      // --- DuckDuckGo API fairy logic ---
+      // Show "thinking" for at least a short moment, but kick off fetch immediately
+      // (Do not use setTimeout for fake delay; instead, await real fetch)
+      let fairyReply = "";
+      try {
+        fairyReply = await getFairyReplyDuckDuckGo(question);
+      } catch (ex) {
+        // Network/coding error: fallback
+        fairyReply =
+          "Oh dear, a fairy fog blocks my answer! Try again with a simpler question, or wait for the magic to return.";
+      }
+      setChat((prev) => [
+        ...prev,
+        { from: "fairy", text: fairyReply, ts: Date.now() },
+      ]);
+      setLoading(false);
     } catch (ex) {
       setError("Oops! Fairy lost her train of thought...");
       setLoading(false);
