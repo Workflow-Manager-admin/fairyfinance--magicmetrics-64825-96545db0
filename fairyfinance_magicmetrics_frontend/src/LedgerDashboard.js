@@ -1,41 +1,38 @@
 import React, { useState, useEffect } from "react";
 import "./LedgerDashboard.css";
 
-// PUBLIC_INTERFACE
-// Main magical dashboard for Tooth Fairy Ledger stat displays and widgets.
+/**
+ * PUBLIC_INTERFACE
+ * Main magical dashboard for Tooth Fairy Ledger stat displays and widgets.
+ */
 function LedgerDashboard({ ledgerInput }) {
-  // Simulate computations - in the real app, these would process input/ledger data.
+  // Magical state for dashboard stats and live widgets
   const [sparkleEarnings, setSparkleEarnings] = useState(0);
   const [auditNote, setAuditNote] = useState("");
   const [economyTrend, setEconomyTrend] = useState([]);
   const [toothTimeline, setToothTimeline] = useState([]);
   const [bonusStats, setBonusStats] = useState({});
-  const [magicalQuote, setMagicalQuote] = useState("");
-  const [magicalGIF, setMagicalGIF] = useState("");
-  const [funFact, setFunFact] = useState("");
-  const [weather, setWeather] = useState({});
 
-  // Dummy magic computation for now.
+  // Widgets state for external API integrations
+  const [magicalQuote, setMagicalQuote] = useState({ text: "", author: "" });
+  const [magicalGIF, setMagicalGIF] = useState({ url: "", alt: "" });
+  const [funFact, setFunFact] = useState("");
+  const [weather, setWeather] = useState({ desc: "", temp: "" });
+  const [loading, setLoading] = useState({ quote: true, gif: true, funFact: true, weather: true });
+
+  // Compute stat widgets as before
   useEffect(() => {
     if (!ledgerInput) return;
-
-    // Simulated Sparkle Coin value: 10 per lost tooth + minor fairy inflation by age
     const coins = Number(ledgerInput.teethLost || 0) * 10 + (Number(ledgerInput.age || 0) * 1.3);
     setSparkleEarnings(coins);
-
-    // Simple fairy audit note for demo.
     setAuditNote(
       coins > 100
         ? "🌟 Exceptional tooth collecting! Fairy Board congratulates your Sparkle initiative."
         : "✨ Keep twinkling! More teeth, more magic. The Fairy Board is watching your progress closely."
     );
-
-    // Economy trends: random walk chart for demo (should analyze real data)
     setEconomyTrend(
       Array.from({ length: 12 }).map((_, idx) => Math.round(coins * (0.7 + 0.09 * Math.sin(idx) + Math.random() * 0.15)))
     );
-
-    // Tooth timeline: Visualize each tooth, using provided dates if available
     setToothTimeline(
       (ledgerInput.toothDates || []).map((d, i) => ({
         date: d,
@@ -43,8 +40,6 @@ function LedgerDashboard({ ledgerInput }) {
         idx: i + 1,
       }))
     );
-
-    // Bonus: Fairiness index, Most enchanted day, etc.
     setBonusStats({
       fairiness: Math.min(100, Math.round(70 + (ledgerInput.teethLost || 0) * 2 + Math.random() * 18)),
       magicalToothDay:
@@ -55,47 +50,100 @@ function LedgerDashboard({ ledgerInput }) {
     });
   }, [ledgerInput]);
 
-  // Magical quote (public API)
+  // ===== API Widgets Logic =====
+  // 1. Magical/Fantasy Quote - magicalquote API or fallback to quotable
   useEffect(() => {
-    fetch("https://api.quotable.io/random")
-      .then((r) => r.json())
-      .then((data) => setMagicalQuote(data.content))
-      .catch(() => setMagicalQuote("Magic is believing in yourself. If you can do that, you can make anything happen."));
+    setLoading((l) => ({ ...l, quote: true }));
+    // Try magical/fantasy quote API first, else fallback
+    fetch("https://api.magicalquote.com/quote/random")
+      .then(r => {
+        if (r.ok) return r.json();
+        throw new Error("Magical Quote API failed");
+      })
+      .then(data => {
+        setMagicalQuote({ text: data.quote, author: data.author });
+        setLoading((l) => ({ ...l, quote: false }));
+      })
+      .catch(() => {
+        // Use quotable as fallback, as before
+        fetch("https://api.quotable.io/random")
+          .then(r => r.json())
+          .then(data => {
+            setMagicalQuote({ text: data.content, author: data.author || "Unknown" });
+            setLoading((l) => ({ ...l, quote: false }));
+          })
+          .catch(() => {
+            setMagicalQuote({ text: "Magic is believing in yourself. If you can do that, you can make anything happen.", author: "Goethe" });
+            setLoading((l) => ({ ...l, quote: false }));
+          });
+      });
   }, []);
 
-  // Magical GIF (public API)
+  // 2. Trending GIF - Tenor trending endpoint for "fairy" & "magic"
   useEffect(() => {
-    fetch(
-      `https://g.tenor.com/v1/search?q=fairy+magic&key=LIVDSRZULELA&limit=10`
-    )
+    setLoading((l) => ({ ...l, gif: true }));
+    fetch(`https://g.tenor.com/v1/trending?key=LIVDSRZULELA&limit=12`)
       .then((r) => r.json())
       .then((data) => {
         if (data.results && data.results.length > 0) {
-          const idx = Math.floor(Math.random() * data.results.length);
-          setMagicalGIF(data.results[idx].media[0]?.gif?.url);
+          // Prefer "fairy", "magic", or vibrant-looking gifs
+          let selected = data.results[Math.floor(Math.random() * data.results.length)];
+          for (const gif of data.results) {
+            if (
+              gif.title && (
+                gif.title.toLowerCase().includes("fairy") ||
+                gif.title.toLowerCase().includes("magic")
+              )
+            ) {
+              selected = gif;
+              break;
+            }
+          }
+          setMagicalGIF({
+            url: selected.media[0]?.gif?.url || selected.media[0]?.tinygif?.url || "",
+            alt: selected.title || "Magical animation"
+          });
         }
+        setLoading((l) => ({ ...l, gif: false }));
+      })
+      .catch(() => {
+        setMagicalGIF({ url: "", alt: "" });
+        setLoading((l) => ({ ...l, gif: false }));
       });
   }, []);
 
-  // Fun fact (public API)
+  // 3. Fun Fact (useless facts API)
   useEffect(() => {
+    setLoading((l) => ({ ...l, funFact: true }));
     fetch("https://uselessfacts.jsph.pl/random.json?language=en")
       .then((r) => r.json())
-      .then((data) => setFunFact(data.text));
+      .then((data) => {
+        setFunFact(data.text);
+        setLoading((l) => ({ ...l, funFact: false }));
+      })
+      .catch(() => {
+        setFunFact("Fairies grant invisible wishes every day. ✨");
+        setLoading((l) => ({ ...l, funFact: false }));
+      });
   }, []);
 
-  // Weather widget (public API, set to "Fairyland")
+  // 4. Weather for "Fairyland" - fallback to known weather desc/temp if offline
   useEffect(() => {
-    fetch(
-      "https://wttr.in/Fairyland?format=%C,%t"
-    )
+    setLoading((l) => ({ ...l, weather: true }));
+    fetch("https://wttr.in/Fairyland?format=%C,%t")
       .then(r => r.text())
       .then(t => {
         const [desc, temp] = t.split(",");
-        setWeather({ desc, temp });
+        setWeather({ desc: desc || "Magical", temp: temp || "" });
+        setLoading((l) => ({ ...l, weather: false }));
+      })
+      .catch(() => {
+        setWeather({ desc: "Sparkling clouds", temp: "+22°C" });
+        setLoading((l) => ({ ...l, weather: false }));
       });
   }, []);
 
+  // ===== Dashboard Layout =====
   return (
     <div className="ledger-dashboard-container">
       <div className="ledger-widgets-row">
@@ -108,8 +156,20 @@ function LedgerDashboard({ ledgerInput }) {
       </div>
       <div className="ledger-widgets-row">
         <BonusStats stats={bonusStats} />
-        <MagicalQuoteWidget quote={magicalQuote} gifUrl={magicalGIF} />
-        <FunFactWidget fact={funFact} weather={weather} />
+        <MagicalQuoteWidget
+          quote={magicalQuote.text}
+          author={magicalQuote.author}
+          gifUrl={magicalGIF.url}
+          gifAlt={magicalGIF.alt}
+          loadingQuote={loading.quote}
+          loadingGIF={loading.gif}
+        />
+        <FunFactWidget
+          fact={funFact}
+          weather={weather}
+          loadingFact={loading.funFact}
+          loadingWeather={loading.weather}
+        />
       </div>
     </div>
   );
@@ -272,44 +332,138 @@ function BonusStats({ stats }) {
   );
 }
 
-function MagicalQuoteWidget({ quote, gifUrl }) {
+/**
+ * Widget: Magical/Fantasy Quote with GIF, with magical styling and shimmer loading indication
+ * - quote: quote text
+ * - author: quote author (if available)
+ * - gifUrl: url to magical gif (Tenor)
+ * - gifAlt: accessibility alt text for gif
+ * - loadingQuote, loadingGIF: true during data fetching
+ */
+function MagicalQuoteWidget({ quote, author, gifUrl, gifAlt, loadingQuote, loadingGIF }) {
+  // Magical shimmer placeholder for loading state
   return (
-    <div className="stat-widget magic-quote">
-      <div className="stat-title">Magical Inspiration</div>
-      <div className="quote-text"><span role="img" aria-label="sparkle">✨</span> {quote}</div>
-      {gifUrl && (
-        <img
-          className="quote-gif"
-          src={gifUrl}
-          alt="Magical fairy animation"
-          style={{
-            width: "86px",
-            margin: "12px auto 0 auto",
-            display: "block",
-            borderRadius: "18px",
-            boxShadow: "0 2px 11px #ffd6fd85"
-          }}
-        />
-      )}
-      <div className="stat-desc">Direct from Fairyland’s daily motivation board</div>
+    <div className="stat-widget magic-quote" style={{
+      boxShadow: "0 0 22px 2px #ffd70022, 0 0 12px 0 #b47cff22, 0 0 0 5px #fffbeeee",
+      border: "2.1px solid #b47cff88",
+      animation: "magic-pulse-glow 2.6s infinite alternate"
+    }}>
+      <div className="stat-title" style={{
+        letterSpacing: "1.5px",
+        color: "#b47cff",
+        textShadow: "0 0 10px #fff7c8cc, 0 2px 8px #ffd6fdcc"
+      }}>
+        <span role="img" aria-label="wand">🪄</span> Magical Inspiration
+      </div>
+      <div className="quote-text" style={{
+        minHeight: 36,
+        fontWeight: 600,
+        fontSize: "1.09em",
+        filter: loadingQuote ? "blur(2px)" : "none",
+        color: loadingQuote ? "#d0afee" : "#8b5cbb"
+      }}>
+        <span role="img" aria-label="sparkle">✨</span>{" "}
+        {loadingQuote
+          ? <span className="magic-shimmer" style={{
+              background: "linear-gradient(89deg, #ff76e5 30%, #ffd700 80%, #7cebff 120%)",
+              height: "1.0em", display: "inline-block", borderRadius: 5, minWidth: 120, opacity: 0.45, marginLeft: 8
+            }}>{" "}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+          : quote
+        }
+        {(!loadingQuote && author) && (
+          <span className="quote-author" style={{ marginLeft: 9, color: "#b47cff", fontWeight: 400, fontStyle: "italic", fontSize: "0.97em" }}>
+            – {author}
+          </span>
+        )}
+      </div>
+      <div style={{ marginTop: 8, minHeight: 90 }}>
+        {(loadingGIF || !gifUrl) ? (
+          <div className="magic-shimmer" style={{
+            width: 88, height: 68, background: "linear-gradient(90deg, #ffd70033, #ff76e527, #b47cff27)", borderRadius: 18,
+            margin: "0 auto", opacity: 0.30
+          }}/>
+        ) : (
+          <img
+            className="quote-gif"
+            src={gifUrl}
+            alt={gifAlt || "Magical fairy animation"}
+            style={{
+              width: "86px",
+              margin: "0 auto",
+              display: "block",
+              borderRadius: "18px",
+              boxShadow: "0 2px 11px #ffd6fd85, 0 0 20px #b47cff22"
+            }}
+          />
+        )}
+      </div>
+      <div className="stat-desc" style={{ fontWeight: 400, marginTop: 10, color: "#b47cff" }}>
+        Direct from Fairyland’s daily motivation board
+      </div>
+      {/* Sparkle Animation for magic pulse */}
+      <style>
+        {`
+        @keyframes magic-pulse-glow {
+          0% { box-shadow: 0 0 18px 2px #ffd70022, 0 0 10px 0 #b47cff19; }
+          100% { box-shadow: 0 0 42px 6px #ffe06655, 0 0 19px #7cebff55; }
+        }
+        .magic-shimmer {
+          animation: shimmer-magic 1.5s infinite alternate linear;
+        }
+        @keyframes shimmer-magic {
+          0% { background-position: -140px; opacity: .16;}
+          100% { background-position: 190px; opacity: .38;}
+        }
+        `}
+      </style>
     </div>
   );
 }
 
-function FunFactWidget({ fact, weather }) {
+/**
+ * Widget: Fun Fact and Weather, magical styling; shimmer for loading, weather with sparkles.
+ */
+function FunFactWidget({ fact, weather, loadingFact, loadingWeather }) {
   return (
-    <div className="stat-widget fun-fact-weather">
-      <div className="stat-title">Random Fairy Fact & Weather</div>
-      <div className="fun-fact-row">
+    <div className="stat-widget fun-fact-weather" style={{ border: "2.2px dotted #7cebffbb", boxShadow: "0 0 18px #b47cff26" }}>
+      <div className="stat-title" style={{ color: "#7cebff", letterSpacing: 1.2 }}>🎀 Random Fairy Fact & Weather</div>
+      <div className="fun-fact-row" style={{ minHeight: 30 }}>
         <span role="img" aria-label="Factbook">📚</span>
-        <span className="fun-fact-label">Fun Fact:</span>
-        <span className="fun-fact-value">{fact}</span>
+        <span className="fun-fact-label" style={{ color: "#47c3df", fontWeight: 700 }}>Fun Fact:</span>
+        {loadingFact ? (
+          <span className="magic-shimmer" style={{
+            background: "linear-gradient(90deg, #b47cff22, #ffd6fd 85%, #ffd70022)",
+            width: 80, display: "inline-block", minHeight: "1em", borderRadius: 4, opacity: 0.28
+          }}>&nbsp;</span>
+        ) : (
+          <span className="fun-fact-value" style={{ color: "#502c87", minWidth: 40 }}>{fact}</span>
+        )}
       </div>
-      <div className="fun-fact-row" style={{ marginTop: 6 }}>
+      <div className="fun-fact-row" style={{ marginTop: 8, alignItems: "center", minHeight: 24 }}>
         <span role="img" aria-label="Weather">⛅</span>
-        <span className="fun-fact-label">Weather in Fairyland:</span>
-        <span className="fun-fact-value">{weather?.desc ?? "..."} {weather?.temp ?? ""}</span>
+        <span className="fun-fact-label" style={{ color: "#7cebff", fontWeight: 700 }}>Weather in Fairyland:</span>
+        {loadingWeather ? (
+          <span className="magic-shimmer" style={{
+            background: "linear-gradient(90deg, #7cebff22, #ff76e52a, #ffd70022)",
+            width: 46, display: "inline-block", minHeight: "1em", borderRadius: 4, opacity: 0.27
+          }}>&nbsp;</span>
+        ) : (
+          <span className="fun-fact-value" style={{ color: "#502c87" }}>
+            <span style={{ filter: "drop-shadow(0 0 6px #7cebff77)" }}>
+              {weather?.desc ?? "..."}
+            </span>{" "}
+            <span style={{ color: "#b47cff", fontWeight: 600 }}>{weather?.temp ?? ""}</span>
+            <span aria-label="weather-sparkle" style={{ marginLeft: 3, fontSize: "1.22em" }}> ✨</span>
+          </span>
+        )}
       </div>
+      <style>
+        {`
+        .magic-shimmer {
+          animation: shimmer-magic 1.7s infinite alternate linear;
+        }
+        `}
+      </style>
     </div>
   );
 }
