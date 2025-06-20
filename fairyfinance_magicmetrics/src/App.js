@@ -3,6 +3,7 @@ import "./App.css";
 import { initOneSignal } from "./onesignal-init";
 import MeetAFairy from "./MeetAFairy";
 import ToothFairyChatbot from "./ToothFairyChatbot";
+import FairyJokeOrFact from "./FairyJokeOrFact";
 
 /*
   Sparkle animation overlay with fairy-dust drift & more varied magical flair!
@@ -439,6 +440,9 @@ function App() {
 
               {/* Meet a Tooth Fairy Card - Simple API Integration */}
               <MeetAFairy />
+              
+              {/* Magical Joke Card: prominently show fun API card */}
+              <FairyJokeOrFact />
 
               <section style={{ display: "flex", gap: "2em", flexWrap: "wrap", margin: "1.5rem 0" }}>
                 <div className="magical-bg" style={{ flex: "2 1 320px" }}>
