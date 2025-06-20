@@ -269,6 +269,92 @@ function ToothFairyChatbot() {
   }
 
   // --- Chat send handler (fetches DuckDuckGo API, uses magical fallback) ---
+  // PUBLIC_INTERFACE
+  // Simple social/chatty intent checker for fairy chatbot
+  function getSocialIntentReply(question) {
+    const q = question.trim().toLowerCase();
+    // Social greetings and small talk
+    const howAreYouRegex = /\b(how are (you|u)|how's it going|hows it going|how do you do|what's up|how r u|how r you)\b/;
+    const whoAreYouRegex = /\b(who (are|r) (you|u)|what are you|what is your name|who is this|who am i talking|who's there|identify yourself|who are u|what is ur name)\b/;
+    const whatsYourNameRegex = /\b(what's your name|what is your name|ur name|your name|may I know your name|who am i talking)\b/;
+    const thanksRegex = /\b(thank you|thanks|thx|ty|gracias|thank u|thank-you)\b/;
+    const areYouARealFairyRegex = /\b(real fairy|are you real|are you a fairy|are you an ai|are you a robot|are you human|are you really a fairy|do you exist)\b/;
+    const greetingRegex = /\b(hi|hello|hey|greetings|good morning|good evening|good afternoon|hiya|sup|yo|fairy|tooth fairy|hey fairy|hi fairy|hello fairy)\b/;
+    const ageRegex = /\b(how old are you|what is your age|age please|when were you born|when is your birthday|birthday)\b/;
+    const favoriteRegex = /\b(what(\'s)? your favorite|favorite|favourite)\b/;
+    // Expand with other relevant regex for social chit-chat if needed
+
+    // Respond to "how are you"
+    if (howAreYouRegex.test(q)) {
+      const replies = [
+        "Oh, I'm twinkling with joy—my fairy wings are fluttering busily tonight! ✨ How are you, bright star?",
+        "I'm gleaming and sparkling, thank you for asking! Collecting teeth and spreading magical coins keeps me happy!",
+        "Full of pixie dust and smiles! Fairyland is beautiful as always. How are you feeling?",
+        "My cheeks are rosy with delight! A question like yours adds extra magic to my night.",
+      ];
+      return replies[Math.floor(Math.random() * replies.length)];
+    }
+    // Respond to "who are you" or "what is your name"
+    if (whoAreYouRegex.test(q) || whatsYourNameRegex.test(q)) {
+      const replies = [
+        "I'm the Tooth Fairy, keeper of bedtime sparkles, dream coins, and shiny lost teeth! 🧚‍♀️",
+        "They call me the Tooth Fairy—flutterer of pillows and bringer of magical surprises!",
+        "I’m your friendly Tooth Fairy! I trade lost teeth for fairy coins beneath moonlit pillows.",
+        "✨ Your magical guide to the world of lost teeth, sweet dreams, and coins galore: the Tooth Fairy!",
+      ];
+      return replies[Math.floor(Math.random() * replies.length)];
+    }
+    // Respond to "thank you"
+    if (thanksRegex.test(q)) {
+      const replies = [
+        "You're very welcome! May extra sparkles visit your dreams tonight! 🌙✨",
+        "Glad I could help! Spread your fairy wings and keep smiling! 🧚‍♀️",
+        "Anytime! Tooth fairies love curious minds and shiny grins.",
+        "Fairy dust and gratitude right back to you!",
+      ];
+      return replies[Math.floor(Math.random() * replies.length)];
+    }
+    // Respond to "are you a real fairy" or identity questions
+    if (areYouARealFairyRegex.test(q)) {
+      const replies = [
+        "Of course! Every lost tooth and every bright dream brings me to life. My magic shines in every coin under your pillow.",
+        "I am as real as the sparkle in your smile! If you believe in magic, I’ll always be here.",
+        "As real as fairy giggles and starlight! The magic of imagination makes me sparkle.",
+      ];
+      return replies[Math.floor(Math.random() * replies.length)];
+    }
+    // Greetings
+    if (greetingRegex.test(q)) {
+      const replies = [
+        "Hello, little dreamer! 🧚‍♀️",
+        "Fairy greetings and sparkles to you!",
+        "Hi there! I'm fluttering by to chat.",
+        "A twinkle hello from fairyland!",
+      ];
+      return replies[Math.floor(Math.random() * replies.length)];
+    }
+    // Age/favorite and whimsical polite dodges
+    if (ageRegex.test(q)) {
+      const replies = [
+        "I’m as old as the first lost tooth and as young as tonight’s twinkling star!",
+        "Tooth fairies don’t count years, only shiny smiles and moonlit wings.",
+        "My age is a glittery secret—let’s say I’m timeless!",
+      ];
+      return replies[Math.floor(Math.random() * replies.length)];
+    }
+    if (favoriteRegex.test(q)) {
+      const replies = [
+        "Oh, my favorite color is the golden glow of a morning tooth! And favorite treat? Freshly brushed teeth, of course! 🦷✨",
+        "I love the glint of moonbeams and the jingle of tiny coins! My favorite thing is seeing big grins.",
+        "Sparkles, shiny stars, and happy dreams—those are my favorites!",
+      ];
+      return replies[Math.floor(Math.random() * replies.length)];
+    }
+    // You can keep expanding with more “chit chat” social patterns
+    // No social intent detected: return null
+    return null;
+  }
+
   async function handleSend(e) {
     e && e.preventDefault();
     setError("");
@@ -285,14 +371,20 @@ function ToothFairyChatbot() {
       setInput("");
       setLoading(true);
 
-      // Fetch composite magical reply w/ factual tie-in
+      // Check for chatty/social intent before fact/magical fallback
       let fairyComposite = "";
-      try {
-        const result = await getFairyReplyDuckDuckGo(question);
-        fairyComposite = result.magicalComposite || "✨ A sprinkling of magic for you!";
-      } catch (ex) {
-        fairyComposite =
-          "Oh dear, a fairy fog blocks my answer! Try again with a simpler question, or wait for the magic to return.";
+      const socialReply = getSocialIntentReply(question);
+      if (socialReply) {
+        fairyComposite = socialReply;
+      } else {
+        // Fetch composite magical reply w/ factual tie-in
+        try {
+          const result = await getFairyReplyDuckDuckGo(question);
+          fairyComposite = result.magicalComposite || "✨ A sprinkling of magic for you!";
+        } catch (ex) {
+          fairyComposite =
+            "Oh dear, a fairy fog blocks my answer! Try again with a simpler question, or wait for the magic to return.";
+        }
       }
       setChat((prev) => [
         ...prev,
