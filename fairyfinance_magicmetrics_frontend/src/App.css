@@ -59,6 +59,7 @@
   90% { filter: brightness(1.12) drop-shadow(0 0 24px #ffd700c0);}
   100% { transform: translateX(102vw) scale(1.008) rotate(-6deg);}
 }
+/* No changes necessary: already includes sparkly flying fairy styling and animation */
 
 body {
   margin: 0;

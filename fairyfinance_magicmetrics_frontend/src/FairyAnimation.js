@@ -1,9 +1,9 @@
 import React from "react";
 
 /**
- * Animated Fairy SVG component that floats from left to right across the top.
- *
  * PUBLIC_INTERFACE
+ * Animated Fairy SVG component that floats from left to right across the top, with magical sparkles and glowing trail.
+ * - Styled by App.css's .fairy-flight-container and .fairy-figure classes.
  */
 function FairyAnimation() {
   return (
@@ -25,8 +25,9 @@ function FairyAnimation() {
           <animate attributeName="rx" values="9.5;11;9.5" dur="2.1s" repeatCount="indefinite" begin="0.2s"/>
           <animate attributeName="ry" values="5.5;7;5.5" dur="2.1s" repeatCount="indefinite" begin="0.1s"/>
         </ellipse>
-        {/* Sparkle Dust */}
+        {/* Sparkle Dust - left behind wing, as fly trail */}
         <g>
+          {/* Animated sparkle dots, trailing behind the fairy */}
           <circle cx="12" cy="42" r="1.2" fill="#ffd700" opacity="0.7" >
             <animate attributeName="r" values="1.2;2;1.2" dur="1.2s" repeatCount="indefinite" />
           </circle>
@@ -42,7 +43,7 @@ function FairyAnimation() {
         <circle cx="40" cy="17.5" r="7.2" fill="#ffe66d" stroke="#fff7c8" strokeWidth="1" />
         {/* Bun magic glow */}
         <circle cx="37" cy="11" r="2.5" fill="#ff76e577" filter="url(#glitter-fairy-glow)" />
-        {/* Arms */}
+        {/* Arms - animated */}
         <rect x="32" y="27" width="16" height="4" rx="2.2" fill="#ffe19a" transform="rotate(-24 40 29)">
           <animateTransform attributeName="transform" type="rotate" values="-24 40 29; -40 40 29; -24 40 29" dur="1.3s" repeatCount="indefinite" />
         </rect>
@@ -61,7 +62,7 @@ function FairyAnimation() {
         <ellipse cx="37.8" cy="18" rx=".8" ry=".61" fill="#432b65" />
         <ellipse cx="42.3" cy="18" rx=".7" ry=".58" fill="#432b65" />
         <path d="M38.7 20.2 Q40 21.2 41.6 20.1" stroke="#a872cc" strokeWidth=".5" fill="none" />
-        {/* Sparkling magic trail */}
+        {/* Sparkling magic trail - right side, tail of the fairy */}
         <g>
           <circle cx="67" cy="12" r="1" fill="#ff76e5bb" >
             <animate attributeName="opacity" values="0.7;1;0.4;1" dur="1.6s" repeatCount="indefinite" />

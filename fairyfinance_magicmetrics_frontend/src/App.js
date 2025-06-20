@@ -55,18 +55,7 @@ function App() {
   return (
     <div className="app">
       {/* Magic fairy flying animation across header */}
-      <div style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        width: "100vw",
-        height: 110,
-        pointerEvents: "none",
-        zIndex: 200,
-        overflow: "visible"
-      }}>
-        <FairyAnimation />
-      </div>
+      <FairyAnimation />
       {/* Magical floating decorative border */}
       <div style={{
         position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh",
