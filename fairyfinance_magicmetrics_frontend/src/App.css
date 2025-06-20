@@ -63,13 +63,55 @@
 
 body {
   margin: 0;
-  font-family: 'Inter', 'Roboto', 'Helvetica', 'Arial', cursive, sans-serif;
+  /* Magically sparkling Purple Purse font across the entire app */
+  font-family: 'Purple Purse', 'Poiret One', 'Mystery Quest', 
+    'Comic Sans MS', 'Satisfy', cursive, sans-serif !important;
   background: radial-gradient(circle at 65% 25%, #fff0fb 15%, #fffbe3 45%, #e7d8fd 80%);
   color: var(--text-color);
   overflow-x: hidden;
   position: relative;
   min-height: 100vh;
+  /* Global glowing effect for magical shimmer */
+  text-shadow:
+    0 0 7px #b47cff55,
+    0 0 22px #ffe06633,
+    0 1.5px 4px #ff76e555;
   /* Sparkle particle overlay */
+}
+
+/* Magical sparkly text for major titles and labels */
+.title, .logo, .subtitle, .fairy-form-title, .stat-title {
+  font-family: 'Purple Purse', 'Poiret One', 'Mystery Quest', cursive, sans-serif !important;
+  letter-spacing: 1.7px;
+  text-shadow:
+    0 0 16px #ffd70088,
+    0 0 8px #b47cff55,
+    0 0 36px #fff0fc77,
+    0 1.5px 4px #ff76e5cc;
+  filter: drop-shadow(0 0 10px #ff76e577);
+  position: relative;
+}
+
+/* Sparkly Keyframes: animated twinkle for magical headers */
+@keyframes magic-glow-sparkle {
+  0% { text-shadow: 0 0 11px #ffd700a0, 0 0 25px #b47cff55; }
+  25% { text-shadow: 0 0 21px #ff76e5a5, 0 0 38px #ffe06690; }
+  50% { text-shadow: 0 0 19px #ffe066d5, 0 0 28px #7cebffbb; }
+  75% { text-shadow: 0 0 24px #b47cff99, 0 0 32px #ffd700bb; }
+  100% { text-shadow: 0 0 11px #ffd700a0, 0 0 25px #b47cff55; }
+}
+.title, .logo, .subtitle, .fairy-form-title, .stat-title {
+  animation: magic-glow-sparkle 3.2s infinite alternate;
+}
+
+/* Extra sparkle shine on logo */
+.logo-symbol, .logo-symbol::after {
+  text-shadow:
+    0 0 16px #ffd700,
+    0 0 30px #ff76e577,
+    0 0 24px #b47cff99;
+  filter: drop-shadow(0 0 8px #ffd700ae);
+  animation: sparkle-spin 3s linear infinite, magic-glow-sparkle 2.4s infinite alternate;
 }
 body::before {
   content: '';
