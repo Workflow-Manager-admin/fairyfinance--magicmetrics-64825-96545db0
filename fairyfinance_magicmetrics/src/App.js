@@ -1,72 +1,101 @@
 import React, { useEffect, useState } from "react";
 import "./App.css";
+import FairyAnimation from "./FairyAnimation";
+import AnimatedBackground from "./AnimatedBackground";
+import FairyUtils from "./FairyUtils";
 
-// Color palette for theme
+// Theme color constants
 const COLORS = {
-  primary: "#ffd700", // Fairy Gold
-  secondary: "#ff69b4", // Pixie Pink
-  accent: "#8a2be2", // Sorcery Purple
+  primary: "#ffd700",
+  secondary: "#ff69b4",
+  accent: "#8a2be2",
+  white: "#fff",
+  blue: "#e0eaff",
+  sparkle: "#f3e6fe"
 };
 
 // PUBLIC_INTERFACE
 function App() {
-  // User profile info
+  // User info
   const [name, setName] = useState("");
-  const [avatarSeed, setAvatarSeed] = useState("tooth-fairy");
+  const [avatarSeed, setAvatarSeed] = useState("toothfairy");
   const [age, setAge] = useState("");
-  // Teeth ledger
+  // Entries for ledger
   const [teethEntries, setTeethEntries] = useState([]);
   const [toothDate, setToothDate] = useState("");
   const [toothCoin, setToothCoin] = useState("");
-  // UI/flair extras
+  // API integrations
   const [randomQuote, setRandomQuote] = useState({ content: "", author: "" });
   const [catImgUrl, setCatImgUrl] = useState("");
+  const [catMsg, setCatMsg] = useState("");
+  const [randomGif, setRandomGif] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
+  // UI/Stats
   const [auditNote, setAuditNote] = useState("");
-  // Bonus stats
   const [bonusStats, setBonusStats] = useState({});
-  // Giphy Placeholder (no actual content)
-  const [showGifPlaceholder, setShowGifPlaceholder] = useState(false);
+  const [showGif, setShowGif] = useState(false);
 
-  // Pull random quote (Quotable API)
+  // Load random quote (Quotable)
   useEffect(() => {
-    fetch("https://api.quotable.io/random").then((r) =>
-      r.json().then((q) => {
-        setRandomQuote({ content: q.content, author: q.author });
-      })
-    );
+    fetch("https://api.quotable.io/random")
+      .then((r) => r.json())
+      .then((q) => setRandomQuote({ content: q.content, author: q.author }))
+      .catch(() => setRandomQuote({ content: "Let the magic begin!", author: "ToothFairy" }));
   }, []);
 
-  // Pull random cat (Cataas)
+  // Load random avatar (DiceBear)
   useEffect(() => {
-    fetch("https://cataas.com/cat?json=true")
+    setAvatarUrl(
+      `https://api.dicebear.com/7.x/lorelei/svg?seed=${encodeURIComponent(
+        avatarSeed
+      )}&radius=50&backgroundColor=ffd700,ff69b4,8a2be2&backgroundType=gradientLinear`
+    );
+  }, [avatarSeed]);
+
+  // Load random cat (Cataas)
+  useEffect(() => {
+    const msg = name ? `${name} is magical!` : "Fairy Cat Power!";
+    setCatMsg(msg);
+    fetch(`https://cataas.com/cat/says/${encodeURIComponent(msg)}?json=true`)
       .then((r) => r.json())
       .then((data) => setCatImgUrl(`https://cataas.com/${data.url}`))
       .catch(() => setCatImgUrl(""));
-  }, [teethEntries.length]);
+  }, [name, teethEntries.length]);
 
-  // Bonus: fairy audit note generator
+  // Load magic GIF (GIPHY)
+  useEffect(() => {
+    // Use a public beta Giphy API key
+    const giphyKey = "dc6zaTOxFJmzC"; // public demo, replace if necessary
+    fetch(
+      `https://api.giphy.com/v1/gifs/random?api_key=${giphyKey}&tag=fairy+magic&rating=pg`
+    )
+      .then((r) => r.json())
+      .then((data) => setRandomGif(data.data?.images?.downsized_medium?.url || ""))
+      .catch(() => setRandomGif(""));
+  }, [showGif]);
+
+  // Magical audit note and stats
   useEffect(() => {
     if (teethEntries.length > 0) {
       let sum = teethEntries.reduce((a, t) => a + Number(t.coins), 0);
       let avg = sum / teethEntries.length || 0;
       let max = Math.max(...teethEntries.map((t) => Number(t.coins)));
       let magicalPhrases = [
-        `Audit complete! ${teethEntries.length} shiny teeth; average reward: ${avg.toFixed(2)} Sparkle Coins.`,
-        `A trail of ${teethEntries.length} lost teeth glimmers, top reward: ${max} Sparkle Coins.`,
-        `Your Sparkle Ledger is growing! Keep up the fairy-tale savings.`,
-        `Magical trends analyzed: steady sparkles ahead!`,
-        `Pixie Note: Wonderful progress this season, little dreamer!`,
+        `Audit complete! ${teethEntries.length} sparkly teeth collected; average reward: ${avg.toFixed(2)} coins.`,
+        `A trail of ${teethEntries.length} lost teeth glimmers, top reward: ${max} coins.`,
+        `Your ToothFairy Ledger is growing! Wishing you magical savings!`,
+        `Fairy perfect: Keep collecting those smiles ✨`,
+        `Brilliant progress little dreamer! Fairy-grade finances!`
       ];
-      const phrase = magicalPhrases[Math.floor(Math.random() * magicalPhrases.length)];
-      setAuditNote(phrase);
+      setAuditNote(magicalPhrases[Math.floor(Math.random() * magicalPhrases.length)]);
       setBonusStats({ sum, avg, max });
     } else {
-      setAuditNote("Ledger awaiting sparkly additions...");
+      setAuditNote("Ledger is sparkling but empty... Add your first magical visit!");
       setBonusStats({});
     }
   }, [teethEntries]);
 
-  // Handle tooth entry add
+  // Handle new ledger entry
   function handleAddEntry(e) {
     e.preventDefault();
     if (!toothDate || !toothCoin) return;
@@ -82,17 +111,9 @@ function App() {
     setToothCoin("");
   }
 
-  // Generate DiceBear avatar url
-  function getAvatarUrl(seed) {
-    return `https://api.dicebear.com/7.x/lorelei/svg?seed=${encodeURIComponent(
-      seed
-    )}&radius=50&backgroundColor=ffd700,ff69b4,8a2be2&backgroundType=gradientLinear`;
-  }
-
-  // Generate chart image URL for trends (QuickChart)
+  // QuickChart.io: Sparkle trends chart (line graph)
   function getTrendChartUrl() {
     if (!teethEntries.length) return "";
-    // Sort by date
     const sorted = [...teethEntries].sort((a, b) => a.date.localeCompare(b.date));
     const labels = sorted.map((t) => t.date);
     const data = sorted.map((t) => Number(t.coins));
@@ -102,9 +123,9 @@ function App() {
         labels,
         datasets: [
           {
-            label: "Sparkle Coin Value",
+            label: "Coins Collected",
             data,
-            backgroundColor: COLORS.primary + "66",
+            backgroundColor: COLORS.primary + "99",
             borderColor: COLORS.accent,
             fill: true,
             tension: 0.45,
@@ -118,29 +139,24 @@ function App() {
           legend: { labels: { color: COLORS.accent, font: { size: 16 } } },
           title: {
             display: true,
-            text: "Sparkle Coin Trends",
+            text: "Gold Coin Trends",
             color: COLORS.primary,
-            font: { size: 22, weight: "bold" },
+            font: { size: 20, weight: "bold" },
           },
         },
         scales: {
-          x: {
-            ticks: { color: COLORS.secondary, font: { size: 14 } },
-          },
-          y: {
-            beginAtZero: true,
-            ticks: { color: COLORS.secondary, font: { size: 14 } },
-          },
+          x: { ticks: { color: COLORS.secondary, font: { size: 14 } } },
+          y: { beginAtZero: true, ticks: { color: COLORS.secondary, font: { size: 14 } } },
         },
       },
     };
-    const url =
-      "https://quickchart.io/chart?width=500&height=300&c=" +
-      encodeURIComponent(JSON.stringify(chartObj));
-    return url;
+    return (
+      "https://quickchart.io/chart?width=520&height=300&c=" +
+      encodeURIComponent(JSON.stringify(chartObj))
+    );
   }
 
-  // Generate "tooth timeline" bar chart (dates vs coins)
+  // Tooth timeline as chart (bar graph)
   function getTimelineChartUrl() {
     if (!teethEntries.length) return "";
     const sorted = [...teethEntries].sort((a, b) => a.date.localeCompare(b.date));
@@ -152,7 +168,7 @@ function App() {
         labels,
         datasets: [
           {
-            label: "Coins per Tooth Visit",
+            label: "Coins per Visit",
             data,
             backgroundColor: COLORS.secondary + "99",
             borderColor: COLORS.accent,
@@ -168,7 +184,7 @@ function App() {
             display: true,
             text: "Tooth Timeline",
             color: COLORS.secondary,
-            font: { size: 20, weight: "bold" },
+            font: { size: 19, weight: "bold" },
           },
         },
         scales: {
@@ -177,38 +193,18 @@ function App() {
         },
       },
     };
-    const url =
-      "https://quickchart.io/chart?width=350&height=300&c=" +
-      encodeURIComponent(JSON.stringify(chartObj));
-    return url;
-  }
-
-  // Styling helper: magical background/flair
-  function FairyBackground() {
     return (
-      <div
-        aria-hidden="true"
-        style={{
-          pointerEvents: "none",
-          position: "fixed",
-          zIndex: 0,
-          top: 0,
-          left: 0,
-          width: "100vw",
-          height: "100vh",
-          background:
-            "radial-gradient(circle at 60% 10%, #ffd70066 0%, transparent 60%),radial-gradient(circle at 30% 80%, #ff69b477 0%, transparent 70%),radial-gradient(circle at 90% 60%, #8a2be255 0%, transparent 55%)",
-        }}
-      />
+      "https://quickchart.io/chart?width=350&height=300&c=" +
+      encodeURIComponent(JSON.stringify(chartObj))
     );
   }
 
-  // Tooth ledger view
+  // Ledger table
   function LedgerTable() {
     if (!teethEntries.length)
       return (
-        <div style={{ color: COLORS.accent, fontStyle: "italic", textAlign: "center", padding: 12 }}>
-          No Sparkle Ledger entries yet!
+        <div style={{ color: COLORS.accent, fontStyle: "italic", textAlign: "center", padding: 14, fontSize: 17 }}>
+          No ToothFairy Ledger entries yet!
         </div>
       );
     return (
@@ -216,32 +212,32 @@ function App() {
         style={{
           width: "100%",
           borderRadius: 12,
-          background: "#fff7fa",
+          background: "#fdf6fe",
           boxShadow: "0 2px 8px 0 #ffd70033",
-          border: `2px solid ${COLORS.primary}`,
-          marginBottom: 6,
+          border: `2.5px solid ${COLORS.primary}`,
+          marginBottom: 8,
           overflow: "hidden",
+          animation: "fadeInScale 0.7s",
         }}
       >
         <thead>
-          <tr style={{ background: COLORS.primary + "18", color: COLORS.accent }}>
+          <tr style={{ background: COLORS.primary + "1A", color: COLORS.accent }}>
             <th style={{ padding: "10px 8px" }}>Date</th>
-            <th style={{ padding: "10px 8px" }}>Sparkle Coins</th>
-            <th style={{ padding: "10px 8px" }}>Fairy Mark</th>
+            <th style={{ padding: "10px 8px" }}>Coins</th>
+            <th style={{ padding: "10px 8px" }}>Magical Mark</th>
           </tr>
         </thead>
         <tbody>
           {teethEntries.map((t, idx) => (
             <tr key={t.id}>
-              <td style={{ textAlign: "center", fontWeight: 500, color: COLORS.accent }}>
-                {t.date}
-              </td>
+              <td style={{ textAlign: "center", fontWeight: 500, color: COLORS.accent }}>{t.date}</td>
               <td
                 style={{
                   textAlign: "center",
                   fontWeight: 700,
                   color: COLORS.primary,
                   letterSpacing: 1.1,
+                  fontFamily: "inherit",
                 }}
               >
                 <span role="img" aria-label="coin">
@@ -252,13 +248,14 @@ function App() {
               <td style={{ textAlign: "center" }}>
                 <span
                   style={{
-                    fontSize: "1.3rem",
+                    fontSize: "1.4rem",
                     color: idx % 2 ? COLORS.secondary : COLORS.accent,
+                    filter: "drop-shadow(0 1px 10px #ffd70066)",
                   }}
                   role="img"
                   aria-label="fairy star"
                 >
-                  {idx % 2 ? "✳️" : "✨"}
+                  {idx % 2 ? "🦷" : "✨"}
                 </span>
               </td>
             </tr>
@@ -274,51 +271,70 @@ function App() {
       className="app"
       style={{
         minHeight: "100vh",
-        background: "#fffaf9",
-        color: "#3d165d",
+        color: "#430a66",
         fontFamily: "'Fredoka', 'Comic Sans MS', cursive, sans-serif",
-        position: "relative",
-        letterSpacing: "0.01em",
+        background: "radial-gradient(circle at 60% 10%, #ffd70022 0%, transparent 60%),radial-gradient(circle at 30% 80%, #ff69b433 0%, transparent 70%),radial-gradient(circle at 90% 60%, #8a2be215 0%, transparent 56%)",
+        letterSpacing: "0.01em"
       }}
     >
-      <FairyBackground />
+      {/* Sparkly Animated Background */}
+      <AnimatedBackground />
 
-      {/* NAVBAR */}
+      {/* Fairy flying across the top */}
+      <FairyAnimation />
+
+      {/* NAVBAR with new branding */}
       <nav
         className="navbar"
         style={{
-          background: "linear-gradient(90deg,#ffd700AA,#ff69b466,#8a2be230)",
+          background: "linear-gradient(90deg,#ffd700cc,#ff69b488,#8a2be288)",
           borderBottom: `3.5px double #8a2be2dd`,
           color: COLORS.accent,
           fontFamily: "Fredoka, cursive",
+          boxShadow: "0 0px 14px 0 #ffd70044",
         }}
       >
         <div className="container" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div className="logo" style={{ fontSize: "2rem", fontWeight: 700, color: COLORS.accent }}>
-            <span className="logo-symbol" style={{ color: COLORS.primary, fontWeight: "bold", fontSize: "2.3rem" }}>
+          <div className="logo"
+            style={{
+              fontSize: "2.06rem",
+              fontWeight: 800,
+              color: COLORS.accent,
+              display: "flex",
+              alignItems: "center",
+              gap: "0.28em"
+            }}>
+            <span className="logo-symbol" style={{
+              color: COLORS.primary,
+              fontWeight: "bolder",
+              fontSize: "2.4rem",
+              textShadow: "0 2px 16px #fff17699"
+            }}>
               🧚
             </span>{" "}
-            FairyFinance & MagicMetrics
+            ToothFairy Ledger
           </div>
           <button
             className="btn"
             style={{
-              background: COLORS.accent,
+              background: COLORS.secondary,
               color: "#fff",
               fontWeight: 600,
               borderRadius: 20,
+              boxShadow: "0 2px 8px 0 #ff69b488",
+              transition: "background 0.3s"
             }}
-            onClick={() => setShowGifPlaceholder((b) => !b)}
+            onClick={() => setShowGif((b) => !b)}
           >
-            {showGifPlaceholder ? "Close" : "✨ Party (GIF)!"}
+            {showGif ? "Close" : "✨ Magical GIF!"}
           </button>
         </div>
       </nav>
 
-      {/* HERO + MAIN */}
-      <main style={{ paddingTop: 104 }}>
+      {/* HERO */}
+      <main style={{ paddingTop: 108 }}>
         <div className="container">
-          {/* Profile Setup */}
+          {/* Profile Block */}
           <div
             style={{
               marginBottom: 18,
@@ -327,25 +343,31 @@ function App() {
               gap: 18,
               flexWrap: "wrap",
               justifyContent: "center",
+              animation: "fadeInSlide 0.75s",
+              borderRadius: 16,
+              boxShadow: "0 2px 11px 0 #8a2be233",
+              background: "#fffafdad",
+              padding: "12px 4px"
             }}
           >
             <img
-              src={getAvatarUrl(avatarSeed || "tooth-fairy")}
+              src={avatarUrl}
               alt="Fairy Avatar"
               style={{
-                width: 85,
-                height: 85,
+                width: 90,
+                height: 90,
                 borderRadius: "50%",
-                background: COLORS.primary + "11",
+                background: COLORS.primary + "10",
                 border: `3px solid ${COLORS.primary}`,
-                boxShadow: "0 2px 12px 0 #8a2be233",
+                boxShadow: "0 2px 18px 2px #ff69b438",
+                transition: "box-shadow 0.3s"
               }}
             />
             <form
               style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 180 }}
               onSubmit={(e) => e.preventDefault()}
             >
-              <label style={{ fontWeight: 500, color: COLORS.accent }}>
+              <label style={{ fontWeight: 700, color: COLORS.accent }}>
                 Fairy Name:
                 <input
                   type="text"
@@ -353,20 +375,22 @@ function App() {
                   value={name}
                   style={{
                     width: "100%",
-                    padding: 6,
+                    padding: 7,
                     marginTop: 3,
                     border: `1.5px solid ${COLORS.accent}`,
                     borderRadius: 10,
+                    background: "#fff5fc",
+                    fontWeight: 500
                   }}
                   placeholder="Enter magical name"
                   onChange={(e) => {
-                    setName(e.target.value.replace(/[^a-zA-Z\s\-]/g, ''));
-                    setAvatarSeed(e.target.value || "tooth-fairy");
+                    setName(e.target.value.replace(/[^a-zA-Z0-9\s\-]/g, ''));
+                    setAvatarSeed(e.target.value || "toothfairy");
                   }}
                 />
               </label>
-              <label style={{ fontWeight: 500, color: COLORS.accent }}>
-                Your Age:
+              <label style={{ fontWeight: 700, color: COLORS.accent }}>
+                Age:
                 <input
                   type="number"
                   min={3}
@@ -374,10 +398,12 @@ function App() {
                   value={age}
                   style={{
                     width: "100%",
-                    padding: 6,
+                    padding: 7,
                     marginTop: 3,
                     border: `1.5px solid ${COLORS.accent}`,
                     borderRadius: 10,
+                    background: "#fff5fc",
+                    fontWeight: 500
                   }}
                   placeholder="Fairy years"
                   onChange={(e) => setAge(e.target.value)}
@@ -389,41 +415,42 @@ function App() {
                 flex: 1,
                 minWidth: 160,
                 color: COLORS.secondary,
-                background: "#fff3fc88",
+                background: "#fff3fcba",
                 borderRadius: 12,
-                padding: 10,
+                padding: 12,
                 textAlign: "center",
-                fontWeight: 500,
+                fontWeight: 600,
+                boxShadow: "0 2px 7px 0 #ff69b433",
               }}
             >
-              <span style={{ fontWeight: 700, color: COLORS.accent }}>
-                Sparkle status:
+              <span style={{ fontWeight: 800, color: COLORS.accent }}>
+                Status
               </span>
               <br />
-              {name
-                ? `Welcome, Fairy ${name}!`
-                : "Let the magic begin!"}
+              {name ? `Welcome, Fairy ${name}!` : "Reveal your fairy name!"}
               <br />
               {age && (
-                <span style={{ fontWeight: 500, fontSize: 15 }}>Age: {age}</span>
+                <span style={{ fontWeight: 700, fontSize: 15 }}>Age: {age}</span>
               )}
             </div>
           </div>
 
-          {/* QUOTE + CAT */}
+          {/* Quote + Cat */}
           <div
             style={{
-              margin: "20px auto 8px",
-              background: "#fff9e688",
+              margin: "24px auto 14px",
+              background: "#fdf9f6cc",
               borderLeft: `7px double ${COLORS.primary}`,
-              borderRadius: 10,
+              borderRadius: 13,
               display: "flex",
               alignItems: "center",
               gap: 16,
-              padding: 14,
-              maxWidth: 640,
-              boxShadow: `0 2px 10px 0 #ffd70033`,
+              padding: 16,
+              maxWidth: 670,
+              boxShadow: `0 2px 13px 0 #ffd70038`,
               fontStyle: "italic",
+              fontWeight: 500,
+              animation: "fadeInScale 1s"
             }}
           >
             <span role="img" aria-label="quote" style={{ fontSize: "2rem", color: COLORS.secondary }}>
@@ -431,8 +458,11 @@ function App() {
             </span>
             <span style={{ flex: 1 }}>
               {randomQuote.content}
-              <div style={{ fontWeight: 600, color: COLORS.accent, marginTop: 2, fontStyle: "normal", fontSize: 14 }}>
-                — {randomQuote.author || "Magical Source"}
+              <div style={{
+                fontWeight: 800, color: COLORS.accent, marginTop: 2,
+                fontStyle: "normal", fontSize: 14
+              }}>
+                — {randomQuote.author || "ToothFairy"}
               </div>
             </span>
             <span>
@@ -440,31 +470,34 @@ function App() {
                 src={catImgUrl}
                 alt="Inspirational Cat"
                 style={{
-                  width: 54,
-                  height: 54,
-                  borderRadius: 14,
-                  border: `2px solid ${COLORS.accent}`,
+                  width: 58,
+                  height: 58,
+                  borderRadius: 15,
+                  border: `2.5px solid ${COLORS.secondary}`,
                   background: "#fff",
                   objectFit: "cover",
-                  boxShadow: `0 1px 7px 0 #ff69b433`,
+                  boxShadow: `0 1px 7px 0 #ff69b455`,
+                  marginBottom: 2,
+                  transition: "box-shadow 0.4s"
                 }}
               />
-              <div style={{ fontSize: 11, color: COLORS.secondary, textAlign: "center" }}>
-                Cat Cheer
+              <div style={{ fontSize: 11, color: COLORS.secondary, textAlign: "center", fontWeight: 700 }}>
+                Fairy Cat
               </div>
             </span>
           </div>
 
-          {/* LEDGER INPUT FORM */}
+          {/* Ledger Input */}
           <div
             style={{
-              margin: "26px auto 10px",
+              margin: "30px auto 12px",
               padding: "18px 20px",
-              background: "#fffbf7da",
+              background: "#fffafdde",
               border: `2px solid ${COLORS.primary}`,
               borderRadius: 14,
               boxShadow: "0 1px 10px 0 #ffd7002b",
               maxWidth: 480,
+              animation: "fadeInScale 0.7s"
             }}
           >
             <form
@@ -482,12 +515,14 @@ function App() {
                 required
                 value={toothDate}
                 style={{
-                  padding: 8,
+                  padding: 9,
                   border: `1.5px solid ${COLORS.accent}`,
-                  borderRadius: 8,
+                  borderRadius: 10,
                   fontSize: 15,
-                  background: "#fffbfceb",
+                  background: "#fffafddb",
                   minWidth: 130,
+                  fontWeight: 500,
+                  boxShadow: "0 1.5px 6px #ffd70022"
                 }}
                 max={new Date().toISOString().slice(0, 10)}
                 onChange={(e) => setToothDate(e.target.value)}
@@ -497,15 +532,17 @@ function App() {
                 required
                 min={1}
                 max={99}
-                placeholder="Sparkle Coins"
+                placeholder="Coins"
                 value={toothCoin}
                 style={{
-                  padding: 8,
+                  padding: 9,
                   border: `1.5px solid ${COLORS.secondary}`,
-                  borderRadius: 8,
+                  borderRadius: 10,
                   fontSize: 15,
-                  background: "#fffbfceb",
+                  background: "#fffafddb",
                   minWidth: 110,
+                  fontWeight: 500,
+                  boxShadow: "0 1.5px 6px #ffd70022"
                 }}
                 onChange={(e) => setToothCoin(e.target.value)}
               />
@@ -513,209 +550,194 @@ function App() {
                 className="btn"
                 type="submit"
                 style={{
-                  background: COLORS.secondary,
+                  background: COLORS.accent,
                   color: "#fff",
-                  fontWeight: 700,
-                  fontSize: 16,
-                  borderRadius: 18,
-                  boxShadow: `1px 1px 8px 0 #ff69b455`,
+                  fontWeight: 800,
+                  fontSize: 17,
+                  borderRadius: 20,
+                  boxShadow: `0 0px 8px 0 #8a2be299`,
+                  animation: "sparkleGlow 2.3s infinite alternate"
                 }}
               >
-                Add to Ledger
+                ✨ Add to Ledger
               </button>
             </form>
           </div>
 
-          {/* LEDGER TABLE */}
+          {/* Ledger Table */}
           <div
             style={{
-              margin: "14px 0 30px",
-              borderRadius: 16,
-              background: "#fff7fa",
-              boxShadow: "0 2px 8px 0 #ffd70029",
-              border: `1.8px solid ${COLORS.primary}`,
-              padding: 18,
-              overflowX: "auto",
+              margin: "20px 0 33px",
+              borderRadius: 18,
+              background: "#fcf8ff",
+              boxShadow: "0 2px 12px 0 #ffd7001f",
+              border: `2.2px solid ${COLORS.primary}`,
+              padding: 20,
+              overflowX: "auto"
             }}
           >
             <div
               style={{
-                fontWeight: 700,
-                color: COLORS.accent,
-                fontSize: 22,
+                fontSize: 23,
                 marginBottom: 8,
+                fontWeight: 800,
                 textAlign: "center",
                 letterSpacing: ".02em",
-              }}
-            >
-              🪙 Sparkle Ledger
+                color: COLORS.accent,
+                textShadow: "0 1.5px 6px #ffd7003c"
+              }}>
+              🪙 ToothFairy Ledger
             </div>
             <LedgerTable />
           </div>
 
-          {/* FAIRY AUDIT + BONUS STATS */}
+          {/* Audit/bonus stats */}
           <div
             style={{
-              margin: "0 auto 24px",
-              padding: 14,
-              background: "#f8f2fe",
+              margin: "0 auto 26px",
+              padding: 18,
+              background: "#fbf6ff",
               border: `2px dashed ${COLORS.accent}`,
-              borderRadius: 12,
-              minHeight: 90,
-              maxWidth: 500,
-              boxShadow: "0 1px 9px 0 #8a2be231",
+              borderRadius: 14,
+              minHeight: 80,
+              maxWidth: 510,
+              boxShadow: "0 1px 9px 0 #8a2be23b",
               color: COLORS.accent,
-              fontWeight: 500,
+              fontWeight: 600,
+              fontSize: 15,
+              animation: "fadeInSlide 1.2s"
             }}
           >
-            <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 4 }}>
+            <div style={{ fontSize: 17, fontWeight: 800, marginBottom: 4 }}>
               💫 Fairy Audit Note
             </div>
             <div>{auditNote}</div>
             {teethEntries.length > 0 && (
               <div
                 style={{
-                  marginTop: 8,
+                  marginTop: 9,
                   display: "flex",
                   justifyContent: "space-between",
                   gap: 8,
                   fontSize: 15,
                   color: COLORS.secondary,
+                  fontWeight: 700
                 }}
               >
                 <div>🪙 Total: {bonusStats.sum || 0}</div>
                 <div>
                   ✨ Avg/visit: {bonusStats.avg ? bonusStats.avg.toFixed(2) : 0}
                 </div>
-                <div>🎯 Max: {bonusStats.max || 0}</div>
+                <div>🏅 Max: {bonusStats.max || 0}</div>
               </div>
             )}
           </div>
 
-          {/* MAGIC CHARTS SECTION */}
+          {/* MAGIC CHARTS */}
           <div
             style={{
               display: "flex",
-              gap: 32,
+              gap: 36,
               justifyContent: "center",
               alignItems: "start",
               flexWrap: "wrap",
-              marginBottom: 22,
+              marginBottom: 30,
+              animation: "fadeInScale 0.8s"
             }}
           >
             {getTrendChartUrl() && (
               <img
                 src={getTrendChartUrl()}
-                alt="Sparkle Coin Trends"
+                alt="Coin trends"
                 style={{
-                  borderRadius: 16,
-                  border: `3px solid ${COLORS.primary}`,
-                  boxShadow: `0 2px 9px 0 #ffd70044`,
+                  borderRadius: 17,
+                  border: `3.6px solid ${COLORS.primary}`,
+                  boxShadow: `0 2px 12px 0 #ffd70044`,
                   background: "#fff",
                   marginTop: 10,
-                  maxWidth: 360,
+                  maxWidth: 375,
                   width: "100%",
+                  transition: "box-shadow .4s"
                 }}
               />
             )}
             {getTimelineChartUrl() && (
               <img
                 src={getTimelineChartUrl()}
-                alt="Tooth Timeline"
+                alt="Tooth timeline"
                 style={{
-                  borderRadius: 16,
-                  border: `3px solid ${COLORS.secondary}`,
-                  boxShadow: `0 2px 10px 0 #8a2be244`,
+                  borderRadius: 17,
+                  border: `3.6px solid ${COLORS.secondary}`,
+                  boxShadow: `0 2px 12px 0 #8a2be244`,
                   background: "#fff",
                   marginTop: 10,
-                  maxWidth: 340,
+                  maxWidth: 350,
                   width: "100%",
+                  transition: "box-shadow .4s"
                 }}
               />
             )}
           </div>
 
-          {/* GIF & NOTIFICATION PLACEHOLDER */}
-          {showGifPlaceholder && (
+          {/* Magical GIF modal */}
+          {showGif && randomGif &&
             <div
               style={{
-                position: "fixed",
-                inset: 0,
-                zIndex: 120,
-                background: "#fff4fce8",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexDirection: "column",
-                animation: "fadeIn .7s",
+                position: "fixed", inset: 0, zIndex: 130,
+                background: "linear-gradient(140deg, #ffd70080, #ff69b423, #8a2be255 95%)",
+                display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column",
+                animation: "fadeIn 0.5s"
               }}
-              onClick={() => setShowGifPlaceholder(false)}
+              onClick={() => setShowGif(false)}
             >
               <div
                 style={{
-                  background: "#fff",
-                  border: `4px dashed ${COLORS.secondary}`,
-                  borderRadius: 22,
-                  boxShadow: "0 4px 30px 0 #ffd70052",
-                  padding: 38,
-                  minWidth: 350,
-                  minHeight: 120,
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
+                  background: "#fff0fae7",
+                  border: `8px dashed ${COLORS.secondary}`,
+                  borderRadius: 28,
+                  boxShadow: "0 6px 40px #8a2be277",
+                  padding: 36, minWidth: 320, minHeight: 170,
+                  display: "flex", flexDirection: "column", alignItems: "center"
                 }}
               >
-                <span style={{ fontSize: "3.5rem" }} role="img" aria-label="magic gif">
-                  🧚‍♂️
-                </span>
+                <img src={randomGif} alt="Fairy GIF" style={{
+                  maxHeight: 170, borderRadius: 20, marginBottom: 16,
+                  boxShadow: "0 3px 30px #ffd70066"
+                }} />
                 <div style={{ fontWeight: 700, color: COLORS.secondary, fontSize: 22, margin: "8px 0" }}>
-                  GIPHY Magic Placeholder
-                </div>
-                <div style={{ fontSize: 15, color: COLORS.accent, marginBottom: 8 }}>
-                  Animation would appear here!
+                  ✨ Fairy & Magic GIF
                 </div>
                 <div
                   style={{
                     background: COLORS.accent,
                     color: "#fff",
-                    padding: "7px 14px",
+                    padding: "7px 16px",
                     borderRadius: 13,
-                    fontWeight: 600,
+                    fontWeight: 700,
                     fontSize: 15,
-                    letterSpacing: ".03em",
+                    marginTop: 10
                   }}
                 >
                   🎉 Tap anywhere to close
                 </div>
-                <div
-                  style={{
-                    marginTop: 9,
-                    fontSize: 13,
-                    color: COLORS.primary,
-                    fontWeight: 400,
-                  }}
-                >
-                  Push notifications via OneSignal would also be here
-                </div>
               </div>
             </div>
-          )}
+          }
 
           {/* Footer */}
           <div
             style={{
-              marginTop: 32,
-              marginBottom: 6,
+              marginTop: 36,
+              marginBottom: 8,
               color: COLORS.accent,
-              fontWeight: 500,
+              fontWeight: 700,
               textAlign: "center",
+              animation: "fadeInScale 1.5s"
             }}
           >
-            <span style={{ fontSize: 21 }}>
-              ✨
-            </span>{" "}
+            <span style={{ fontSize: 23, textShadow: "0 1.5px 7px #ffd70047" }}>✨</span>{" "}
             <span>
-              FairyFinance & MagicMetrics • All reports are sparkly and imaginary. Powered by Quotable, Cataas, DiceBear, QuickChart, and fairy dust!
+              ToothFairy Ledger • Powered by Quotable, Cataas, DiceBear, QuickChart, Giphy, and fairy dust!
             </span>
           </div>
         </div>
