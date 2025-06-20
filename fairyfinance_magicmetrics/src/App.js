@@ -4,6 +4,7 @@ import { initOneSignal } from "./onesignal-init";
 import MeetAFairy from "./MeetAFairy";
 import ToothFairyChatbot from "./ToothFairyChatbot";
 import FairyJokeOrFact from "./FairyJokeOrFact";
+import FairyQuoteCard from "./FairyQuoteCard";
 
 /*
   Sparkle animation overlay with fairy-dust drift & more varied magical flair!
@@ -443,6 +444,9 @@ function App() {
               
               {/* Magical Joke Card: prominently show fun API card */}
               <FairyJokeOrFact />
+
+              {/* Magical Inspirational Quote Card: quotable.io API */}
+              <FairyQuoteCard />
 
               <section style={{ display: "flex", gap: "2em", flexWrap: "wrap", margin: "1.5rem 0" }}>
                 <div className="magical-bg" style={{ flex: "2 1 320px" }}>
