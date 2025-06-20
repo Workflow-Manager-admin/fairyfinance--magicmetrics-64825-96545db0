@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import "./App.css";
 import { initOneSignal } from "./onesignal-init";
 import MeetAFairy from "./MeetAFairy";
+import ToothFairyChatbot from "./ToothFairyChatbot";
 
 /*
   Sparkle animation overlay to add magic dust to the background.
@@ -319,6 +320,7 @@ function App() {
       <MagicSparkleOverlay num={26} />
       {/* --- Crystal Ball with Magical Fairy Gif --- */}
       {fairyCrystalBallBlock}
+      <ToothFairyChatbot />
       {/* --- Main navigation & rest of app --- */}
       <nav
         className="navbar"

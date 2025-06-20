@@ -314,6 +314,11 @@ footer {
   }
 }
 
+/* --- Tooth Fairy Chatbot Widget (Floating) --- */
+/* Additional styles for floating chat should be minimal; main styling inline in component for sharp theme-correct look */
+/* If additional hover/select/active/focus styling needed, target .toothfairy-chatbot{} or collapse button here */
+
+
 /* Crystal ball magic gif */
 .crystal-ball {
   display: flex;
