@@ -229,45 +229,157 @@ function FairyAuditNote({ note }) {
 }
 
 function EconomyTrendChart({ data }) {
-  // Magical line chart (SVG, no external deps)
+  // Magical line chart (SVG) plus new QuickChart.io image for lively dashboard!
+
+  // Prepare QuickChart data for external render - keep it magical, sparkly, and on brand!
+  const chartLabels = Array.from({length: data.length}, (_, i) => `M${i+1}`);
+  const chartUrl = (() => {
+    // Our magical palette: #b47cff (purple), #ffd700 (gold), #ff76e5 (pink), #7cebff (blue)
+    const config = {
+      type: "line",
+      data: {
+        labels: chartLabels,
+        datasets: [
+          {
+            label: "Sparkle Coin Earnings",
+            data,
+            fill: true,
+            borderColor: "#b47cff",
+            backgroundColor: "rgba(255,118,229,0.13)",
+            pointBackgroundColor: "#ffd700",
+            pointBorderColor: "#ff76e5",
+            pointRadius: 5,
+            borderWidth: 4,
+            tension: 0.43,
+          }
+        ]
+      },
+      options: {
+        plugins: {
+          legend: {
+            display: false
+          },
+          title: {
+            display: false
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: {
+              color: "#b47cff",
+              font: { size: 16, family: "Purple Purse, cursive" }
+            }
+          },
+          y: {
+            grid: {
+              color: "#ffe06644",
+              lineWidth: 2,
+              borderDash: [6, 8]
+            },
+            beginAtZero: true,
+            ticks: {
+              color: "#eab81c",
+              font: { size: 15, family: "Purple Purse, cursive" }
+            }
+          }
+        }
+      }
+    };
+    const bg = "bg=rgba(255,251,227,0.97)";
+    // width/height and "theme"
+    const size = "width=400&height=180&devicePixelRatio=2";
+    const sparkle = "format=png&version=3.0.0"; // use v3 for pretty output
+    // Compose URL
+    return `https://quickchart.io/chart?${size}&${bg}&${sparkle}&c=${encodeURIComponent(JSON.stringify(config))}`;
+  })();
+
+  // SVG fallback for accessibility in the magical ledger
   const maxVal = Math.max(...data, 18);
   const minVal = Math.min(...data, 0);
   const norm = val => 82 - ((val - minVal) / (maxVal - minVal || 1)) * 54;
+
   return (
-    <div className="stat-widget stat-economy-chart">
-      <div className="stat-title">Magical Economy Trends</div>
-      <svg viewBox="0 0 138 90" className="trend-svg">
-        <defs>
-          <linearGradient id="magictrend" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#b47cff"/>
-            <stop offset="60%" stopColor="#ffd700"/>
-            <stop offset="100%" stopColor="#ff76e5"/>
-          </linearGradient>
-          <filter id="trend-shadow" x="-20%" y="-20%" width="140%" height="140%">
-            <feDropShadow dx="0" dy="3" stdDeviation="5" floodColor="#ffd6fd"/>
-          </filter>
-        </defs>
-        <polyline
-          fill="none"
-          stroke="url(#magictrend)"
-          strokeWidth="4"
-          filter="url(#trend-shadow)"
-          points={data.map((d, i) => `${10 + i * 11},${norm(d)}`).join(" ")}
+    <div className="stat-widget stat-economy-chart" style={{ position: "relative", overflow: "visible" }}>
+      <div className="stat-title">
+        Magical Economy Trends
+        <span aria-hidden="true" style={{ marginLeft: 7, fontSize: 21, verticalAlign: "middle", filter: "drop-shadow(0 0 8px #ffd700ee)" }}>✨</span>
+      </div>
+      {/* QuickChart.io image, visually magical */}
+      <div
+        style={{
+          width: 400,
+          maxWidth: "100%",
+          margin: "0 auto 8px auto",
+          background: "radial-gradient(circle at 63% 59%, #fffbe3 75%, #ffd6fd 100%)",
+          borderRadius: 33,
+          boxShadow: "0 0 32px 3px #ffd6fd69, 0 0 10px #b47cff99, 0 0 0 6px #ffe06623",
+          border: "2.1px solid #b47cff50",
+          padding: 7,
+          display: "flex", justifyContent: "center", alignItems: "center",
+          position: "relative",
+          zIndex: 2,
+          minHeight: 112
+        }}
+      >
+        <img
+          src={chartUrl}
+          alt="Sparkle Coin Earnings Chart over Time"
+          width={380}
+          height={160}
+          style={{
+            width: "94%",
+            maxWidth: 380,
+            minHeight: 100,
+            display: "block",
+            margin: "0 auto",
+            borderRadius: 22,
+            filter: "drop-shadow(0 0 16px #ffd70036) drop-shadow(0 0 4px #b47cff59)",
+            background: "#fff",
+            border: "2px solid #ffd70040",
+            boxShadow: "0 2px 14px #b47cff27, 0 0 8px #ffd70044"
+          }}
         />
-        {data.map((d, i) =>
-          <circle
-            key={i}
-            cx={10 + i * 11}
-            cy={norm(d)}
-            r="3.8"
-            fill="#fff3fd"
-            stroke="#ff76e5"
-            strokeWidth="2"
-            filter="url(#trend-shadow)">
-            <animate attributeName="r" values="3.5;5;3.8" dur="1.6s" repeatCount="indefinite" begin={0.15 * i + "s"} />
-          </circle>
-        )}
-      </svg>
+        {/* Sparkle SVG deco for the chart */}
+        <svg aria-hidden="true" width="34" height="34" style={{ position: "absolute", right: -10, top: -10, opacity: 0.79 }}>
+          <polygon points="17,2 20,14 33,15 22,20 25,32 17,26 9,32 12,20 1,15 14,14" fill="#ffd700" />
+        </svg>
+      </div>
+      {/* SVG fallback (keep for accessibility/minimal browser fallback or static render) */}
+      <div style={{ display: "none" }}>
+        <svg viewBox="0 0 138 90" className="trend-svg">
+          <defs>
+            <linearGradient id="magictrend" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#b47cff"/>
+              <stop offset="60%" stopColor="#ffd700"/>
+              <stop offset="100%" stopColor="#ff76e5"/>
+            </linearGradient>
+            <filter id="trend-shadow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="3" stdDeviation="5" floodColor="#ffd6fd"/>
+            </filter>
+          </defs>
+          <polyline
+            fill="none"
+            stroke="url(#magictrend)"
+            strokeWidth="4"
+            filter="url(#trend-shadow)"
+            points={data.map((d, i) => `${10 + i * 11},${norm(d)}`).join(" ")}
+          />
+          {data.map((d, i) =>
+            <circle
+              key={i}
+              cx={10 + i * 11}
+              cy={norm(d)}
+              r="3.8"
+              fill="#fff3fd"
+              stroke="#ff76e5"
+              strokeWidth="2"
+              filter="url(#trend-shadow)">
+              <animate attributeName="r" values="3.5;5;3.8" dur="1.6s" repeatCount="indefinite" begin={0.15 * i + "s"} />
+            </circle>
+          )}
+        </svg>
+      </div>
       <div className="stat-desc">Revenue from dream trading & tooth market</div>
     </div>
   );
