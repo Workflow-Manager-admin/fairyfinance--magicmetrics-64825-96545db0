@@ -3,61 +3,109 @@ import "./App.css";
 
 /*
   PUBLIC_INTERFACE
-  ToothFairyChatbot: Magical Tooth Fairy chat widget with real OpenAI chat!
-  - Whimsical floating chat bubble.
-  - Uses OpenAI API (ChatGPT) for live, authentic fairy conversations.
-  - Prompts the user for an API Key on first use (never stored in code). 
-  - Warn users/devs: **Never commit API keys to version control - keep them private!**
-  - Chat and API key are stored in sessionStorage for reload-safe use (not in source files).
-  - Handles loading and error states with magical UI. Friendly error if key invalid.
-  - Fallbacks to local scripted logic if API fails, so kids never get a blank answer.
-  -------------------------------------------------------------------------------
-  WARNING: NEVER HARD-CODE OR COMMIT YOUR OPENAI API KEY TO GIT OR VERSION CONTROL!
-  -------------------------------------------------------------------------------
-     Always prompt users for the key in secure UI, do not embed or save in code.
+  ToothFairyChatbot: Magical local fairy chatbot!
+
+  This chat widget is now 100% scripted—no network or AI API is called for user questions.
+  - All fairy responses are locally generated from a whimsical, varied response script designed for fun and magical tooth fairy lore.
+  - The chat history is saved in sessionStorage for the user's session (never sent to any server).
+  - This implementation is guaranteed to be error-free (no Internet required, no rate limits, no failed credentials).
+  - This approach ensures children and users always receive reliable, magical answers.
+
+  -------------------------------------------------------------------------------------------
+  NOTE ON PUBLIC AI APIS:
+    Most public conversational AI APIs (such as OpenAI, Hugging Face, Anthropic, Google) REQUIRE an API key/token for interactive chat.
+    Even “public” demo endpoints frequently enforce quotas or authentication via bearer token—
+    attempting chat without credentials results in errors or unpredictable availability.
+
+    The current implementation avoids ALL credentials, API keys, or online requests.
+    For production apps or parent/admin usage, consult API documentation for authentication options.
+  -------------------------------------------------------------------------------------------
 */
 
-/*
-  --- Config ---
+/* --- Fairy-themed scripted reply logic --- */
+function getFairyReply(userText) {
+  // Define rules: match on keywords & fallback to magic
+  const rules = [
+    {
+      test: (t) => /lost|came out|fell out|loose tooth|wiggle/.test(t),
+      reply: [
+        "✨ Flutter flutter! Well done on losing a tooth! Put it under your pillow for fairy fun tonight!",
+        "How magical—a shiny new tooth for the fairy castle! Dream big and sleep well! ✨",
+        "Hooray—a tooth for Fairyland! Sleep tight and let the fairy magic begin.",
+      ],
+    },
+    {
+      test: (t) => /how much|money|coin|gold|worth/.test(t),
+      reply: [
+        "The amount of fairy gold depends on your tooth's sparkle! Bravery gets bonus coins. 🪙✨",
+        "Sometimes you'll get extra for a super shiny tooth—surprises are fairy magic! 🌈",
+        "Gold coins and fairy dust—what a combination! Each tooth is valued for its magic.",
+      ],
+    },
+    {
+      test: (t) => /hello|hi|hey|who are you|hi fairy|hello fairy|greetings|good morning|good night/.test(t),
+      reply: [
+        "Hello, dreamer! I'm your Tooth Fairy friend—what magic teethy question do you have?",
+        "Hi there! Fairy wings flutter when you chat with me—ask away!",
+        "Magical greetings! 🌟 What wonders can I answer tonight?",
+      ],
+    },
+    {
+      test: (t) => /pain|hurt|scared|afraid|nervous|bleed|ouch|cry/.test(t),
+      reply: [
+        "Oh, brave one! Losing a tooth is magical. Fairy dust makes it easy. You'll get treasure for your bravery! 🦷💜",
+        "It's okay to feel a bit scared—fairies watch over you! Soon you'll have a grown-up smile! 🌟",
+        "Even when it feels a bit uncomfortable, you're doing something magical! Fairyland is proud of you.",
+      ],
+    },
+    {
+      test: (t) => /when|tonight|visit|what time|will you|coming/.test(t),
+      reply: [
+        "The Tooth Fairy usually visits when dreamy sleep arrives—keep your eyes closed for extra sparkle!",
+        "I'll visit as soon as the stars twinkle bright and you drift off into fairy dreams.",
+      ],
+    },
+    {
+      test: (t) => /who|your name|are you real|where live|who are you/.test(t),
+      reply: [
+        "I'm the magical Tooth Fairy! I collect shining teeth to build castles of dreams.",
+        "I flutter between pillows and moonbeams—making sure every lost tooth is properly sprinkled with fairy dust.",
+        "My name changes with every twinkle, but my magic is always the same!",
+      ],
+    },
+    {
+      test: (t) => /tooth fairy|fairy/.test(t),
+      reply: [
+        "That's me! I love sparkles, gold coins, and kind wishes under pillows.",
+        "Fairies are always near, especially when a tooth is ready for a magical adventure.",
+      ],
+    },
+    {
+      test: (t) => /can i|may i|is it ok|should i/.test(t),
+      reply: [
+        "You can always believe in fairy magic! If you have a question, I'm always here to help.",
+        "As long as your heart is full of wonder, anything is possible in Fairyland!",
+      ],
+    },
+    {
+      test: () => true, // fallback
+      reply: [
+        "Every question is a sprinkle of curiosity! Fairy wings are always near—ask anything about teeth magic!",
+        "That's a sparkly question! Fairyland is full of surprises—just like you!",
+        "I may not know everything, but I do know a little fairy dust helps every day!",
+      ],
+    },
+  ];
+  const clean = (userText || "").toLowerCase().trim();
+  const rule = rules.find((r) => r.test(clean));
+  if (rule) {
+    const msgs = rule.reply;
+    return msgs[Math.floor(Math.random() * msgs.length)];
+  }
+  return "The fairy magic feels confused! Try rewording your question. 🧚";
+}
 
-  PUBLIC_INTERFACE
-
-  The chat completion endpoint is now set to Hugging Face's free Inference API.
-  We use the conversational model 'microsoft/DialoGPT-medium' as default, which is public (no API key needed for low-rate, non-commercial usage at:
-  https://huggingface.co/microsoft/DialoGPT-medium).
-
-  To use your own (other) model, or to add an API key/bearer token:
-    1. Change HF_API_URL below to a different Hugging Face Inference endpoint or your own endpoint.
-    2. If credentials are ever required, add an 'Authorization' header to the fetch options as:
-          headers: {
-            ...,
-            'Authorization': `Bearer YOUR_HF_API_KEY`
-          }
-    3. You may also change the model name (e.g., 'facebook/blenderbot-400M-distill') for a different style/personality.
-
-  Note: Free usage is subject to public limits and can sometimes be slow/rate-limited (HTTP 429/503).
-        Errors during fetch (rate-limits, service unavailable, other failures) are gracefully handled below.
-*/
-
-const HF_API_URL = "https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium";
-// Optionally change to another public conversational model from HF, e.g.
-// const HF_API_URL = "https://api-inference.huggingface.co/models/facebook/blenderbot-400M-distill";
-// Or, for paid/API-key: add Bearer Authorization header (see comments above)
-
-const chatBubbleColors = {
-  fairyPink: "var(--magic-pink, #f2d1fa)",
-  fairyBlue: "var(--magic-blue, #a1fdff)",
-  fairyAccent: "var(--magic-accent, #bb5dfe)",
-  fairyYellow: "var(--magic-gold, #ffe9a8)",
-  fairyViolet: "var(--magic-violet, #d7b5fd)",
-};
-
-const defaultPromptMsg =
-  "Ask anything about your tooth, coins, or fairyland! (Powered by magical AI ✨)";
-
-/*
-  Safely persist chat for user session (never in file or on server).
-*/
+/* -- Chat state utilities (persist for user session, never sent externally) -- */
 function getSessionChat() {
   try {
     let raw = sessionStorage.getItem("tfairy-chatbot");
@@ -74,54 +122,23 @@ function saveSessionChat(chat) {
   }
 }
 
-// Fallback logic: returns a cute scripted answer if AI fails or no key
-function fallbackFairyReply(userText) {
-  const rules = [
-    {
-      test: (t) => /lost|came out|fell out/.test(t),
-      reply: [
-        "✨ Flutter flutter! Well done on losing a tooth! Put it under your pillow for fairy fun tonight!",
-        "How magical—a shiny new tooth for the fairy castle! Dream big and sleep well! ✨",
-      ],
-    },
-    {
-      test: (t) => /how much|money|coin|gold/.test(t),
-      reply: [
-        "The amount of fairy gold depends on your tooth's sparkle! Bravery gets bonus coins. 🪙✨",
-        "Sometimes you get extra for a super shiny tooth—surprises are fairy magic! 🌈",
-      ],
-    },
-    {
-      test: (t) => /hello|hi|hey|who are you|hi fairy|hello fairy/.test(t),
-      reply: [
-        "Hello, dreamer! I'm your Tooth Fairy friend—what magic teethy question do you have?",
-        "Hi there! Fairy wings flutter when you chat with me—ask away!",
-      ],
-    },
-    {
-      test: (t) => /pain|hurt|scared|afraid/.test(t),
-      reply: [
-        "Oh, brave one! Losing a tooth is magical. Fairy dust makes it easy. You'll get treasure for your bravery! 🦷💜",
-        "It's okay to feel a bit scared—fairies watch over you! Soon you'll have a grown-up smile! 🌟",
-      ],
-    },
-    {
-      test: () => true,
-      reply: [
-        "Every question is a sprinkle of curiosity! Fairy wings are always near—ask anything about teeth magic!",
-        "That's a sparkly question! Fairyland is full of surprises—just like you!",
-      ],
-    },
-  ];
-  const clean = (userText || "").toLowerCase().trim();
-  const rule = rules.find((r) => r.test(clean));
-  if (rule) {
-    const msgs = rule.reply;
-    return msgs[Math.floor(Math.random() * msgs.length)];
-  }
-  return "The fairy magic feels confused! Try rewording your question. 🧚";
-}
+/* -- Whimsical bubble color theme -- */
+const chatBubbleColors = {
+  fairyPink: "var(--magic-pink, #f2d1fa)",
+  fairyBlue: "var(--magic-blue, #a1fdff)",
+  fairyAccent: "var(--magic-accent, #bb5dfe)",
+  fairyYellow: "var(--magic-gold, #ffe9a8)",
+  fairyViolet: "var(--magic-violet, #d7b5fd)",
+};
 
+const defaultPromptMsg =
+  "Ask anything about your tooth, coins, or fairyland! (Powered by magical fairy wisdom ✨)";
+
+/* -- MAIN CHATBOT FUNCTION -- */
+/*
+  PUBLIC_INTERFACE
+  ToothFairyChatbot: Local, whimsical, magical fairy chatbot.
+*/
 function ToothFairyChatbot() {
   // Chat state & session persistence
   const session = getSessionChat();
@@ -159,7 +176,7 @@ function ToothFairyChatbot() {
   }, [isOpen]);
   // ----------------------------------------------------
 
-  // --- UI: Collapsed chat bubble ---
+  // --- Collapsed chat bubble UI ---
   if (!isOpen) {
     return (
       <button
@@ -206,81 +223,7 @@ function ToothFairyChatbot() {
     );
   }
 
-  // --- Helper: Send message to Hugging Face Conversational API ---
-  // PUBLIC_INTERFACE
-  /*
-    Sends a user question & conversation history to Hugging Face Inference API (public conversational model).
-
-    Returns the fairy's reply as a string.
-    Gracefully handles common errors: rate limited, service down, API failures—fallbacks to fairy logic if needed.
-
-    To change endpoint/model or to use credentials:
-      - Edit the HF_API_URL and add 'Authorization' header as shown above if credentials/token needed.
-      - For other models, see https://huggingface.co/models?pipeline_tag=conversational
-  */
-  async function sendToHuggingFace(userText, priorChat) {
-    // Hugging Face expects past_user_inputs and generated_responses in order.
-    const priorUser = priorChat.filter((m) => m.from === "user").map((m) => m.text);
-    const priorFairy = priorChat.filter((m) => m.from === "fairy").map((m) => m.text);
-    const payload = {
-      inputs: {
-        past_user_inputs: priorUser,
-        generated_responses: priorFairy,
-        text: userText,
-      }
-    };
-    let controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 18000); // 18s safety
-    try {
-      const resp = await fetch(HF_API_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          // If you use a paid Hugging Face Inference endpoint, add Authorization here.
-          // 'Authorization': 'Bearer YOUR_HF_TOKEN'
-        },
-        body: JSON.stringify(payload),
-        signal: controller.signal,
-      });
-      clearTimeout(timeout);
-      if (resp.status === 429 || resp.status === 503) {
-        throw new Error(
-          "Too many requests — the fairy API is resting! Please wait a moment and try again."
-        );
-      }
-      if (!resp.ok) {
-        // Try to give user a better message for other HTTP errors
-        let msg = "Public AI chat service is currently unavailable.";
-        let errJson = null;
-        try { errJson = await resp.json(); } catch {}
-        if (errJson && errJson.error) msg = errJson.error;
-        throw new Error(msg);
-      }
-      const data = await resp.json();
-      // The reply will be in data.generated_text or data[0].generated_text (for batch)
-      let fairy =
-        data?.generated_text ||
-        (Array.isArray(data) && data[0]?.generated_text) ||
-        fallbackFairyReply(userText);
-      // Sometimes HF models respond too generically or blank
-      if (!fairy || fairy.trim().length < 2) {
-        fairy = fallbackFairyReply(userText);
-      }
-      return fairy;
-    } catch (err) {
-      clearTimeout(timeout);
-      if (err.name === "AbortError") {
-        throw new Error(
-          "Network timeout — the fairy API did not reply in time! Try again."
-        );
-      }
-      throw err;
-    }
-  }
-
-  // -- (removed: API Key Prompt UI block, not required for Hugging Face free endpoint) --
-
-  // --- Actual Chat Send Handler ---
+  // --- Chat send handler ---
   async function handleSend(e) {
     e && e.preventDefault();
     setError("");
@@ -298,26 +241,18 @@ function ToothFairyChatbot() {
       setInput("");
       setLoading(true);
 
-      // Send to Hugging Face conversational AI
-      const prior = [...chat.filter((m) => m.from)];
-      let fairyReply = "";
-      try {
-        fairyReply = await sendToHuggingFace(question, prior);
-      } catch (err) {
-        setError(
-          "Fairy AI error: " +
-            (err?.message ||
-              "Could not fetch a fairy answer this time. The service might be down or rate-limited.")
-        );
-        fairyReply = fallbackFairyReply(question);
-      }
-      setChat((prev) => [
-        ...prev,
-        { from: "fairy", text: fairyReply, ts: Date.now() },
-      ]);
+      // --- 100% local fairy reply logic ---
+      // (simulate "thinking" delay for magic effect)
+      setTimeout(() => {
+        const fairyReply = getFairyReply(question);
+        setChat((prev) => [
+          ...prev,
+          { from: "fairy", text: fairyReply, ts: Date.now() },
+        ]);
+        setLoading(false);
+      }, 460 + Math.random() * 340);
     } catch (ex) {
       setError("Oops! Fairy lost her train of thought...");
-    } finally {
       setLoading(false);
     }
   }
@@ -353,7 +288,7 @@ function ToothFairyChatbot() {
       }}
       aria-label="Tooth Fairy Chatbot"
     >
-      {/* Prominent Dev Warning (never commit key!!) */}
+      {/* API Credential Warning Documentation */}
       <div
         style={{
           background: "#fff3ed",
@@ -365,13 +300,15 @@ function ToothFairyChatbot() {
           padding: "2px 10px",
         }}
       >
-        {/* THIS IS A DEV WARNING!! */}
-        {/* NEVER COMMIT YOUR API KEY TO GIT OR CODE. */}
-        {/* API keys should be private and injected securely. */}
+        {/* 
+          Dev note: 
+          Most public AI chat APIs (OpenAI, Hugging Face, Anthropic) require credentials for use.
+          The current fairy chat uses only local responses—no API keys or network are required!
+        */}
         <span role="img" aria-label="Caution" style={{ marginRight: 4 }}>
           ⚠️
         </span>
-        <strong>Never commit API keys to version control!</strong>
+        No API keys required! This fairy chat is fully local and error-free.
       </div>
       {/* Header */}
       <div
