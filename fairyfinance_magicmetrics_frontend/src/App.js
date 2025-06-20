@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './App.css';
 import FairyInputForms from './FairyInputForms';
 import './FairyInputForms.css';
+import LedgerDashboard from "./LedgerDashboard";
+import './LedgerDashboard.css';
 
 /**
  * Sparkle animation overlay SVG
@@ -38,7 +40,19 @@ function SparkleStars() {
  * PUBLIC_INTERFACE
  * ToothFairy Ledger main component.
  */
+import React, { useState } from 'react';
+
 function App() {
+  // State to track ledger input data and dashboard display
+  const [ledgerInput, setLedgerInput] = useState(null);
+  const [showDashboard, setShowDashboard] = useState(false);
+
+  const handleFormSubmit = (inputData) => {
+    setLedgerInput(inputData);
+    setShowDashboard(true);
+    // You could trigger magical sprinkles here!
+  };
+
   return (
     <div className="app">
       {/* Magical floating decorative border */}
@@ -96,7 +110,13 @@ function App() {
             </button>
           </div>
           {/* Magical, sparkling input forms for age, lost teeth, and dates */}
-          <FairyInputForms />
+          {!showDashboard && (
+            <FairyInputForms onSubmit={handleFormSubmit} />
+          )}
+          {/* Magical stat dashboard appears after submission */}
+          {showDashboard && (
+            <LedgerDashboard ledgerInput={ledgerInput} />
+          )}
         </div>
       </main>
 

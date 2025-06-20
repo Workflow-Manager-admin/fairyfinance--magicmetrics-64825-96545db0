@@ -1,0 +1,181 @@
+.ledger-dashboard-container {
+  margin: 44px 0 36px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 37px;
+  align-items: center;
+  z-index: 3;
+}
+.ledger-widgets-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 33px;
+  margin-bottom: 10px;
+}
+.stat-widget {
+  background: linear-gradient(110deg, #fff8fe 0 30%, #ffd6fd 100%);
+  border-radius: 28px;
+  box-shadow: 0 4px 28px 0 #ffd6fd28, 0 0 0 2px #b47cff22;
+  min-width: 205px;
+  max-width: 315px;
+  flex: 1 1 275px;
+  padding: 20px 22px 18px 22px;
+  position: relative;
+  text-align: center;
+  z-index: 3;
+  border: 1.5px solid #ff76e543;
+  margin-bottom: 0;
+  overflow: visible;
+  min-height: 140px;
+}
+
+.stat-title {
+  font-size: 1.23rem;
+  font-weight: 600;
+  color: #ff76e5;
+  margin-bottom: 7px;
+  letter-spacing: 1.1px;
+  text-shadow: 0 2px 6px #ffd70040;
+  margin-top: 2px;
+}
+
+.stat-icon, .stat-icon.small {
+  margin-bottom: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  font-size: 2.5em;
+}
+
+.stat-icon.small { font-size: 1.5em; }
+
+.coin-sparkle-svg {
+  display: block;
+  margin: 0 auto;
+  filter: drop-shadow(0 0 11px #ffd70055);
+  background: radial-gradient(#fff9e980 56%,rgba(255, 245, 210,0.16) 100%);
+  border-radius: 50%;
+}
+.stat-coin { border: 2.4px solid #ffd70099; }
+.stat-coin .stat-value {
+  font-size: 2.38rem;
+  font-weight: 750;
+  color: #eab81c;
+  letter-spacing: 1.5px;
+  text-shadow: 0 2px 9px #fff7c8cc, 0 0 11px #b47cff30;
+}
+.stat-coin .stat-desc { color: #b47cff; font-size: 1.01em; margin-top: 3px;}
+
+.stat-fairy-audit { border: 1.5px solid #7cebff98; background: linear-gradient(95deg,#fffbfb 40%,#e7f7ff 100%);}
+.stat-fairy-audit .audit-icon {
+  font-size: 2.1rem;
+  filter: drop-shadow(0 0 10px #7cebff88);
+}
+.stat-fairy-audit .stat-note {
+  font-size: 1.07em;
+  color: #502c87;
+  margin-top: 10px;
+  text-shadow: 0 1.5px 5px #b47cff20;
+}
+.stat-fairy-audit .stat-title { color: #7cebff; }
+
+.stat-economy-chart {
+  border: 1.6px solid #b47cff7c;
+  background: linear-gradient(115deg, #fff9e9 70%, #e1d0ff 100%);
+}
+.trend-svg {
+  width: 132px;
+  height: 82px;
+  margin: 4px auto 8px auto;
+  display: block;
+}
+
+.stat-tooth-timeline {
+  border: 1.6px solid #ff76e592;
+  background: linear-gradient(105deg, #ffe8fb 65%, #fdefff 100%);
+}
+.tooth-timeline-track {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  gap: 13px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  border-radius: 12px;
+}
+.tooth-timeline-entry {
+  background: linear-gradient(120deg,#fff 50%,#ffd6fd 110%);
+  border-radius: 16px;
+  box-shadow: 0 2px 16px #ffd7ff17;
+  padding: 7px 10px 6px 10px;
+  margin-top: 4px;
+  min-width: 68px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 0.99em;
+}
+.tooth-ico { font-size: 1.6em; margin-bottom: 2px; }
+.timeline-label { color: #b47cff; font-size: 0.93em; }
+.timeline-coins { color: #eab81c; font-size: 1.01em; font-weight: 700; }
+.timeline-empty { background: linear-gradient(120deg,#fffbe9 60%,#f8e3ff 100%);}
+.timeline-empty .stat-value { color: #b0a0c7; } 
+
+.stat-bonus {
+  border: 2.1px dashed #ffd70077;
+  background: linear-gradient(120deg, #fffcf8 57%, #fff7e9 110%);
+}
+.bonus-stats-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0;
+  font-size: 1.13em;
+}
+.bonus-icon { font-size: 1.4em;}
+
+.magic-quote {
+  border: 1.9px solid #b47cff77;
+  background: linear-gradient(115deg, #fafaff 63%, #f3eaff 105%);
+}
+.magic-quote .quote-text {
+  font-style: italic;
+  color: #8b5cbb;
+  font-size: 1.05em;
+  margin: 7px 0 7px 0;
+  text-shadow: 0 1.5px 5px #ffd7001a;
+}
+.magic-quote .quote-gif {
+  margin-top: 3px;
+  border: 1.7px solid #ffd70077;
+  background: #fff4fd;
+  border-radius: 18px;
+}
+.magic-quote .stat-desc {
+  text-align: center;
+  color: #b47cff;
+}
+
+.fun-fact-weather {
+  border: 2.2px dotted #7cebff91;
+  background: linear-gradient(123deg,#f7eaff 54%,#e4f7fe 105%);
+}
+.fun-fact-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  font-size: 0.98em;
+  margin-top: 2px;
+}
+.fun-fact-label { 
+  color: #47c3df; font-size: 1.02em; 
+  font-weight: 700;
+  margin-right: 2px;
+}
+.fun-fact-value { color: #502c87; }
+.fun-fact-weather .stat-title { color: #7cebff; }
+@media (max-width: 1050px) {
+  .ledger-widgets-row { flex-direction: column; gap: 22px;}
+}
