@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import "./App.css";
 import { initOneSignal } from "./onesignal-init";
+import MeetAFairy from "./MeetAFairy";
 
 /*
   Sparkle animation overlay to add magic dust to the background.
@@ -410,6 +411,9 @@ function App() {
                   colors={COLORS}
                 />
               </section>
+
+              {/* Meet a Tooth Fairy Card - Simple API Integration */}
+              <MeetAFairy />
 
               <section style={{ display: "flex", gap: "2em", flexWrap: "wrap", margin: "1.5rem 0" }}>
                 <div className="magical-bg" style={{ flex: "2 1 320px" }}>
