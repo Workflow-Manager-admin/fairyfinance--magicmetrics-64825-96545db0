@@ -7,49 +7,21 @@
 <i> [webpack-dev-server] On Your Network (IPv4): http://172.17.0.2:3000/
 <i> [webpack-dev-server] Content not from webpack is served from './public' directory
 Injecting EditorRootWrapper import: ../.ve/EditorRootWrapper
-asset bundle.js 1.44 MiB [emitted] (name: main)
+asset bundle.js 1.38 MiB [emitted] (name: main)
 asset index.html 1.98 KiB [emitted]
-runtime modules 27.6 KiB 14 modules
-javascript modules 1.29 MiB
-  modules by path ./node_modules/ 1.24 MiB 32 modules
-  modules by path ./src/ 35.5 KiB
-    modules by path ./src/*.css 20.1 KiB 6 modules
-    modules by path ./src/*.js 15.4 KiB 3 modules
-  modules by path ./.ve/ 15.1 KiB
-    modules by path ./.ve/*.js 10.6 KiB 2 modules
-    modules by path ./.ve/*.css 2.93 KiB 2 modules
-    ./.ve/EditorOverlay.jsx 1.58 KiB [built] [code generated]
-asset modules 1010 bytes
-  data:image/svg+xml;utf8,<svg width="40" .. 505 bytes [built] [code generated]
-  data:image/svg+xml;utf8,<svg width="100".. 506 bytes [built] [code generated]
-webpack 5.99.9 compiled successfully in 1299 ms
-assets by status 1.98 KiB [cached] 1 asset
-assets by path *.js 1.53 MiB
-  asset bundle.js 1.48 MiB [emitted] (name: main)
-  asset main.b2ae0b1a2bf1fdde87f3.hot-update.js 56.8 KiB [emitted] [immutable] [hmr] (name: main)
-asset main.b2ae0b1a2bf1fdde87f3.hot-update.json 28 bytes [emitted] [immutable] [hmr]
-Entrypoint main 1.53 MiB = bundle.js 1.48 MiB main.b2ae0b1a2bf1fdde87f3.hot-update.js 56.8 KiB
-cached modules 1.28 MiB [cached] 47 modules
-runtime modules 27.6 KiB 14 modules
-javascript modules 36.6 KiB
-  modules by path ./src/*.js 29.7 KiB
-    ./src/App.js 8.72 KiB [built] [code generated]
-    ./src/LedgerDashboard.js 21 KiB [built] [code generated]
-  modules by path ./src/*.css 6.89 KiB
-    ./src/LedgerDashboard.css 2.26 KiB [built] [code generated]
-    ./node_modules/css-loader/dist/cjs.js!./src/LedgerDashboard.css 4.63 KiB [built] [code generated]
-webpack 5.99.9 compiled successfully in 285 ms
-assets by status 1.98 KiB [cached] 1 asset
-assets by path *.js 1.41 MiB
-  asset bundle.js 1.38 MiB [emitted] (name: main)
-  asset main.5bd4a80ce5b3e4f53230.hot-update.js 26.5 KiB [emitted] [immutable] [hmr] (name: main)
-asset main.5bd4a80ce5b3e4f53230.hot-update.json 1.23 KiB [emitted] [immutable] [hmr]
-Entrypoint main 1.41 MiB = bundle.js 1.38 MiB main.5bd4a80ce5b3e4f53230.hot-update.js 26.5 KiB
-cached modules 1.26 MiB [cached] 38 modules
 runtime modules 27.5 KiB 14 modules
-javascript modules 569 bytes
-  ./src/index.js 530 bytes [code generated]
-  ./src/App.js 39 bytes [built] [code generated] [1 error]
+modules by path ./node_modules/ 1.24 MiB 31 modules
+modules by path ./.ve/ 15.1 KiB
+  modules by path ./.ve/*.js 10.6 KiB 2 modules
+  modules by path ./.ve/*.css 2.93 KiB 2 modules
+  ./.ve/EditorOverlay.jsx 1.58 KiB [built] [code generated]
+modules by path ./src/ 3.83 KiB
+  modules by path ./src/*.js 569 bytes
+    ./src/index.js 530 bytes [built] [code generated]
+    ./src/App.js 39 bytes [built] [code generated] [1 error]
+  modules by path ./src/*.css 3.27 KiB
+    ./src/index.css 2.23 KiB [built] [code generated]
+    ./node_modules/css-loader/dist/cjs.js!./src/index.css 1.05 KiB [built] [code generated]
 
 ERROR in ./src/App.js
 Module build failed (from ./node_modules/babel-loader/lib/index.js):
@@ -96,54 +68,26 @@ SyntaxError: /home/kavia/workspace/code-generation/fairyfinance--magicmetrics-64
     at async.call.result.err.err (/home/kavia/workspace/code-generation/fairyfinance--magicmetrics-64825-96545db0/fairyfinance_magicmetrics_frontend/node_modules/gensync/index.js:223:11)
  @ ./src/index.js 5:0-24 11:32-35
 
-webpack 5.99.9 compiled with 1 error in 34 ms
-assets by status 1.39 MiB [cached] 2 assets
-cached modules 1.26 MiB (javascript) 27.5 KiB (runtime) [cached] 53 modules
-./src/App.js 39 bytes [built] [1 error]
-
-ERROR in ./src/App.js
-Module build failed (from ./node_modules/babel-loader/lib/index.js):
-SyntaxError: /home/kavia/workspace/code-generation/fairyfinance--magicmetrics-64825-96545db0/fairyfinance_magicmetrics_frontend/src/App.js: Identifier 'React' has already been declared. (43:7)
-
-  41 |  * ToothFairy Ledger main component.
-  42 |  */
-> 43 | import React, { useState } from 'react';
-     |        ^
-  44 |
-  45 | function App() {
-  46 |   // State to track ledger input data and dashboard display
-    at constructor (/home/kavia/workspace/code-generation/fairyfinance--magicmetrics-64825-96545db0/fairyfinance_magicmetrics_frontend/node_modules/@babel/parser/lib/index.js:363:19)
-    at JSXParserMixin.raise (/home/kavia/workspace/code-generation/fairyfinance--magicmetrics-64825-96545db0/fairyfinance_magicmetrics_frontend/node_modules/@babel/parser/lib/index.js:6609:19)
-    at ScopeHandler.checkRedeclarationInScope (/home/kavia/workspace/code-generation/fairyfinance--magicmetrics-64825-96545db0/fairyfinance_magicmetrics_frontend/node_modules/@babel/parser/lib/index.js:1626:19)
-    at ScopeHandler.declareName (/home/kavia/workspace/code-generation/fairyfinance--magicmetrics-64825-96545db0/fairyfinance_magicmetrics_frontend/node_modules/@babel/parser/lib/index.js:1592:12)
-    at JSXParserMixin.declareNameFromIdentifier (/home/kavia/workspace/code-generation/fairyfinance--magicmetrics-64825-96545db0/fairyfinance_magicmetrics_frontend/node_modules/@babel/parser/lib/index.js:7538:16)
-    at JSXParserMixin.checkIdentifier (/home/kavia/workspace/code-generation/fairyfinance--magicmetrics-64825-96545db0/fairyfinance_magicmetrics_frontend/node_modules/@babel/parser/lib/index.js:7534:12)
-    at JSXParserMixin.checkLVal (/home/kavia/workspace/code-generation/fairyfinance--magicmetrics-64825-96545db0/fairyfinance_magicmetrics_frontend/node_modules/@babel/parser/lib/index.js:7475:12)
-    at JSXParserMixin.finishImportSpecifier (/home/kavia/workspace/code-generation/fairyfinance--magicmetrics-64825-96545db0/fairyfinance_magicmetrics_frontend/node_modules/@babel/parser/lib/index.js:14184:10)
-    at JSXParserMixin.parseImportSpecifierLocal (/home/kavia/workspace/code-generation/fairyfinance--magicmetrics-64825-96545db0/fairyfinance_magicmetrics_frontend/node_modules/@babel/parser/lib/index.js:14181:31)
-    at JSXParserMixin.maybeParseDefaultImportSpecifier (/home/kavia/workspace/code-generation/fairyfinance--magicmetrics-64825-96545db0/fairyfinance_magicmetrics_frontend/node_modules/@babel/parser/lib/index.js:14288:12)
-    at JSXParserMixin.parseImportSpecifiersAndAfter (/home/kavia/workspace/code-generation/fairyfinance--magicmetrics-64825-96545db0/fairyfinance_magicmetrics_frontend/node_modules/@babel/parser/lib/index.js:14157:29)
-    at JSXParserMixin.parseImport (/home/kavia/workspace/code-generation/fairyfinance--magicmetrics-64825-96545db0/fairyfinance_magicmetrics_frontend/node_modules/@babel/parser/lib/index.js:14153:17)
-    at JSXParserMixin.parseStatementContent (/home/kavia/workspace/code-generation/fairyfinance--magicmetrics-64825-96545db0/fairyfinance_magicmetrics_frontend/node_modules/@babel/parser/lib/index.js:12795:27)
-    at JSXParserMixin.parseStatementLike (/home/kavia/workspace/code-generation/fairyfinance--magicmetrics-64825-96545db0/fairyfinance_magicmetrics_frontend/node_modules/@babel/parser/lib/index.js:12685:17)
-    at JSXParserMixin.parseModuleItem (/home/kavia/workspace/code-generation/fairyfinance--magicmetrics-64825-96545db0/fairyfinance_magicmetrics_frontend/node_modules/@babel/parser/lib/index.js:12662:17)
-    at JSXParserMixin.parseBlockOrModuleBlockBody (/home/kavia/workspace/code-generation/fairyfinance--magicmetrics-64825-96545db0/fairyfinance_magicmetrics_frontend/node_modules/@babel/parser/lib/index.js:13235:36)
-    at JSXParserMixin.parseBlockBody (/home/kavia/workspace/code-generation/fairyfinance--magicmetrics-64825-96545db0/fairyfinance_magicmetrics_frontend/node_modules/@babel/parser/lib/index.js:13228:10)
-    at JSXParserMixin.parseProgram (/home/kavia/workspace/code-generation/fairyfinance--magicmetrics-64825-96545db0/fairyfinance_magicmetrics_frontend/node_modules/@babel/parser/lib/index.js:12541:10)
-    at JSXParserMixin.parseTopLevel (/home/kavia/workspace/code-generation/fairyfinance--magicmetrics-64825-96545db0/fairyfinance_magicmetrics_frontend/node_modules/@babel/parser/lib/index.js:12531:25)
-    at JSXParserMixin.parse (/home/kavia/workspace/code-generation/fairyfinance--magicmetrics-64825-96545db0/fairyfinance_magicmetrics_frontend/node_modules/@babel/parser/lib/index.js:14410:10)
-    at parse (/home/kavia/workspace/code-generation/fairyfinance--magicmetrics-64825-96545db0/fairyfinance_magicmetrics_frontend/node_modules/@babel/parser/lib/index.js:14444:38)
-    at parser (/home/kavia/workspace/code-generation/fairyfinance--magicmetrics-64825-96545db0/fairyfinance_magicmetrics_frontend/node_modules/@babel/core/lib/parser/index.js:41:34)
-    at parser.next (<anonymous>)
-    at normalizeFile (/home/kavia/workspace/code-generation/fairyfinance--magicmetrics-64825-96545db0/fairyfinance_magicmetrics_frontend/node_modules/@babel/core/lib/transformation/normalize-file.js:64:37)
-    at normalizeFile.next (<anonymous>)
-    at run (/home/kavia/workspace/code-generation/fairyfinance--magicmetrics-64825-96545db0/fairyfinance_magicmetrics_frontend/node_modules/@babel/core/lib/transformation/index.js:22:50)
-    at run.next (<anonymous>)
-    at transform (/home/kavia/workspace/code-generation/fairyfinance--magicmetrics-64825-96545db0/fairyfinance_magicmetrics_frontend/node_modules/@babel/core/lib/transform.js:22:33)
-    at transform.next (<anonymous>)
-    at step (/home/kavia/workspace/code-generation/fairyfinance--magicmetrics-64825-96545db0/fairyfinance_magicmetrics_frontend/node_modules/gensync/index.js:261:32)
-    at /home/kavia/workspace/code-generation/fairyfinance--magicmetrics-64825-96545db0/fairyfinance_magicmetrics_frontend/node_modules/gensync/index.js:273:13
-    at async.call.result.err.err (/home/kavia/workspace/code-generation/fairyfinance--magicmetrics-64825-96545db0/fairyfinance_magicmetrics_frontend/node_modules/gensync/index.js:223:11)
- @ ./src/index.js 5:0-24 11:32-35
-
-webpack 5.99.9 compiled with 1 error in 30 ms
+webpack 5.99.9 compiled with 1 error in 1328 ms
+assets by status 1.98 KiB [cached] 1 asset
+assets by path *.js 1.6 MiB
+  asset bundle.js 1.48 MiB [emitted] (name: main)
+  asset main.b47228536937e3c55c71.hot-update.js 127 KiB [emitted] [immutable] [hmr] (name: main)
+asset main.b47228536937e3c55c71.hot-update.json 28 bytes [emitted] [immutable] [hmr]
+Entrypoint main 1.6 MiB = bundle.js 1.48 MiB main.b47228536937e3c55c71.hot-update.js 127 KiB
+cached modules 1.26 MiB [cached] 38 modules
+runtime modules 27.6 KiB 14 modules
+modules by layer 62.3 KiB
+  modules by path ./src/ 60.7 KiB
+    modules by path ./src/*.css 23.7 KiB
+      ./src/App.css 2.22 KiB [built] [code generated]
+      + 5 modules
+    modules by path ./src/*.js 37 KiB
+      ./src/index.js 530 bytes [code generated]
+      ./src/App.js 9.27 KiB [built] [code generated]
+      + 2 modules
+  asset modules 1010 bytes
+    data:image/svg+xml;utf8,<svg width="40" .. 505 bytes [built] [code generated]
+    data:image/svg+xml;utf8,<svg width="100".. 506 bytes [built] [code generated]
+  ./node_modules/css-loader/dist/runtime/getUrl.js 597 bytes [built] [code generated]
+webpack 5.99.9 compiled successfully in 345 ms

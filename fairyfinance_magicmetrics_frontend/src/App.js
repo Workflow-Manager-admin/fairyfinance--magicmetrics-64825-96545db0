@@ -40,8 +40,6 @@ function SparkleStars() {
  * PUBLIC_INTERFACE
  * ToothFairy Ledger main component.
  */
-import React, { useState } from 'react';
-
 function App() {
   // State to track ledger input data and dashboard display
   const [ledgerInput, setLedgerInput] = useState(null);
