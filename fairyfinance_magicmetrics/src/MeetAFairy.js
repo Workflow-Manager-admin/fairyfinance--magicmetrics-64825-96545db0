@@ -1,102 +1,219 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import "./App.css";
+
+/*
+  PUBLIC_INTERFACE
+  MeetAFairy: Magical fairy card!
+  Displays a randomly selected illustrated fairy portrait and whimsical name.
+  Uses a static array of fairies (names + images), no network/API.
+  If you want to add your own fairies, add image URLs to fairyImages and names to fairyNames arrays.
+*/
+
+// -- Local asset fairy images and magical names --
+// For demonstration, 6 fairies are included as royalty-free or creative commons.
+// Replace or augment with your own AI-generated or purchased assets for production!
+const fairyImages = [
+  // Free/CC0, placeholder fairies from unsplash/pexels/stock--replace as desired!
+  // Alternatively, use your own assets, e.g. "/assets/fairies/fairy1.png"
+  {
+    url: "https://cdn.pixabay.com/photo/2016/01/11/18/29/fantasy-1135638_1280.jpg",
+    credit: "Pixabay, CC0",
+  },
+  {
+    url: "https://images.pexels.com/photos/417173/pexels-photo-417173.jpeg", // soft-wing fairy in forest
+    credit: "Pexels",
+  },
+  {
+    url: "https://cdn.pixabay.com/photo/2016/07/15/15/07/fairy-1516928_1280.jpg", // blue fairy with sparkles
+    credit: "Pixabay, CC0",
+  },
+  {
+    url: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=640&q=80",
+    credit: "Unsplash",
+  },
+  {
+    url: "https://cdn.pixabay.com/photo/2017/10/02/23/54/fairy-2818139_1280.jpg", // dreamy fairy magic
+    credit: "Pixabay, CC0",
+  },
+  {
+    url: "https://cdn.pixabay.com/photo/2014/03/25/15/25/fantasy-297575_1280.png",
+    credit: "Pixabay, CC0",
+  },
+];
+
+const fairyNames = [
+  "Twinkle Starbloom",
+  "Silverbell Mistywing",
+  "Luna Glitterdew",
+  "Pip Featherpetal",
+  "Wisp Sunbeam",
+  "Petal Stardust",
+  "Mirabelle Moonwhisper",
+  "Elara Dreammist",
+  "Dewdrop Thistle",
+  "Thistle Cottonglow",
+  "Nova Flitterlace",
+  "Opal Moonpetal",
+  "Fawn Sugarplume",
+  "Zinnia Sparklewisp",
+  "Bracken Whisperlight",
+];
+
+// Optionally, fairy titles
+const fairyTitles = [
+  "Guardian of Lost Teeth",
+  "Queen of Glittering Smiles",
+  "Pixie Paymaster",
+  "Dreamland Messenger",
+  "Keeper of Gold Coins",
+  "Enchanter of Pillow Nights",
+  "Wish Granter",
+  "Spirit of Sparkles",
+  "Sleepytime Sprout",
+  "Sunbeam Collector"
+];
+
+// Utility: Pick random element
+function pickRandom(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
 
 /**
  * PUBLIC_INTERFACE
- * Simple, robust card that fetches and displays a fairy (random user) from randomuser.me.
- * Shows name, magical title, portrait, and handles loading/error states.
+ * The MeetAFairy card now displays a randomly-chosen magical fairy: whimsical name, illustrated image, and themed title. No internet required!
  */
 function MeetAFairy() {
-  const [fairy, setFairy] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  // On mount, pick a random fairy. "Summon new fairy" refreshes the card.
+  const summonFairy = () => {
+    const image = pickRandom(fairyImages);
+    const name = pickRandom(fairyNames);
+    const title = pickRandom(fairyTitles);
+    return { image, name, title };
+  };
 
-  // Fetch from Random User Generator
-  useEffect(() => {
-    let ignore = false;
-    setLoading(true);
-    setError("");
-    fetch("https://randomuser.me/api/?inc=name,picture,login,gender")
-      .then(r => r.json())
-      .then(data => {
-        if (ignore) return;
-        if (data.results && data.results[0]) {
-          setFairy(data.results[0]);
-          setError("");
-        } else {
-          setError("No fairies could be summoned!");
-        }
-        setLoading(false);
-      })
-      .catch(() => {
-        if (!ignore) {
-          setError("Fairy magic fizzled! Please try again later.");
-          setLoading(false);
-        }
-      });
-    return () => { ignore = true; };
-  }, []);
+  const [fairy, setFairy] = useState(() => summonFairy());
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Helper for magical title
-  function getMagicalTitle(gender) {
-    if (gender === "female") return "Starshine Fairy";
-    if (gender === "male") return "Dreamweaver Fairy";
-    return "Mystic Fairy";
+  function handleSummonAgain() {
+    // Add a tiny loading effect for magic
+    setIsLoading(true);
+    setTimeout(() => {
+      setFairy(summonFairy());
+      setIsLoading(false);
+    }, 600 + Math.random() * 600); // whimsical delay
   }
 
   return (
     <div
       className="magical-bg"
       style={{
-        maxWidth: 320,
-        minHeight: 222,
+        maxWidth: 340,
+        minHeight: 240,
         margin: "0 auto 2.2rem auto",
         textAlign: "center",
-        boxShadow: "0 0 20px #ffcdf7cc",
-        background: "linear-gradient(115deg,#fff5fd 70%,#f2d1fa 120%)"
+        boxShadow: "0 0 20px #ffcdf7bb",
+        background: "linear-gradient(115deg,#fff5fd 70%,#f2d1fa 120%)",
+        position: "relative",
+        zIndex: 1
       }}
       aria-label="Meet a Tooth Fairy"
     >
-      <div style={{ fontFamily: "'Snell Roundhand', cursive", fontWeight: 700, fontSize: "1.32em", color: "#ad46bc", letterSpacing: ".03em", marginBottom: 8 }}>
+      <div style={{
+        fontFamily: "'Snell Roundhand', cursive",
+        fontWeight: 700,
+        fontSize: "1.32em",
+        color: "#ad46bc",
+        letterSpacing: ".03em",
+        marginBottom: 8
+      }}>
         <span role="img" aria-label="Fairy">🧚‍♂️</span> Meet a Tooth Fairy!
       </div>
-      {loading && (
-        <div style={{ fontSize: "2.3em", color: "#bb5dfe", marginTop: 28 }}>
-          ✨ Summoning...
+      {isLoading ? (
+        <div style={{ fontSize: "2.3em", color: "#bb5dfe", marginTop: 34, letterSpacing: "0.02em" }}>
+          <span style={{ filter: "drop-shadow(0 0 9px #ffd700b3)" }}>✨</span>
+          <span style={{ marginLeft: 8, fontSize: ".64em", color: "#ad46bc" }}>
+            Summoning fairy magic...
+          </span>
         </div>
-      )}
-      {error && (
-        <div style={{ color: "#ff69b4", fontWeight: 500, fontSize: "1.09em", marginTop: 28 }}>
-          {error}
-        </div>
-      )}
-      {!loading && fairy && (
+      ) : (
         <>
-          <div style={{ margin: "18px 0 0 0", display: "flex", flexDirection: "column", alignItems: "center" }}>
+          <div style={{
+            margin: "18px 0 0 0",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center"
+          }}>
             <img
-              src={fairy.picture.large}
-              alt={`The magical fairy, ${fairy.name.first} ${fairy.name.last}`}
+              src={fairy.image.url}
+              alt={`Illustration of ${fairy.name}, fairy`}
               style={{
-                borderRadius: "40% 60% 60% 40% / 50% 40% 60% 70%",
-                width: 100,
-                height: 100,
+                borderRadius: "43% 57% 57% 43% / 61% 39% 61% 39%",
+                width: 102,
+                height: 105,
                 objectFit: "cover",
                 border: "3.5px solid #ffe9a8",
-                boxShadow: "0 4px 22px #bb5dfe33, 0 0 7px #ffe9a899",
-                marginBottom: 8
+                boxShadow: "0 4px 22px #bb5dfe22, 0 0 14px #e6ccf4cc",
+                marginBottom: 10,
+                background: "#fcfafe"
               }}
               draggable={false}
             />
-            <div style={{ color: "#8a2be2", fontWeight: 600, fontSize: "1.13em", fontFamily: "'Snell Roundhand', cursive" }}>
-              {fairy.name.first} {fairy.name.last}
+            <div style={{
+              color: "#8a2be2",
+              fontWeight: 700,
+              fontSize: "1.18em",
+              fontFamily: "'Snell Roundhand', cursive",
+              marginBottom: 2
+            }}>
+              {fairy.name}
             </div>
-            <div style={{ color: "#ff69b4", fontWeight: 500, fontSize: "0.99em", marginTop: 1 }}>
-              {getMagicalTitle(fairy.gender)}
+            <div style={{
+              color: "#ff69b4",
+              fontWeight: 500,
+              fontSize: "1.01em",
+              marginTop: 1,
+              fontFamily: "'Snell Roundhand', cursive"
+            }}>
+              {fairy.title}
             </div>
-            <div style={{fontSize: "0.97em", color: "#b889fc", marginTop: 5, fontFamily: "'Snell Roundhand', cursive"}}>
-              "Just fluttering by to check your fairy finances!" <span aria-label="sparkles">✨</span>
+            <div style={{
+              fontSize: "0.97em",
+              color: "#b889fc",
+              marginTop: 6,
+              fontFamily: "'Snell Roundhand', cursive"
+            }}>
+              “Just fluttering by to check your fairy finances!”&nbsp;<span aria-label="sparkles">✨</span>
+            </div>
+            <div style={{
+              fontSize: ".67em",
+              marginTop: 4,
+              color: "#bb84dfb3"
+            }}>
+              {/* Optionally, show image credits if using free/stock images: */}
+              {fairy.image.credit ? <>Image: <span>{fairy.image.credit}</span></> : null}
             </div>
           </div>
+          <button
+            className="btn"
+            disabled={isLoading}
+            style={{
+              fontWeight: "700",
+              margin: "18px 0 0 0",
+              fontSize: "1em",
+              borderRadius: "21px",
+              background:
+                "linear-gradient(100deg, #a1fdff 60%, #ffe9a8 120%)",
+              color: "#ad46bc",
+              boxShadow: "0 2px 12px #b983f455",
+              letterSpacing: ".01em",
+              transition: "background .25s"
+            }}
+            onClick={handleSummonAgain}
+            aria-label="Meet another fairy"
+            tabIndex={0}
+          >
+            <span role="img" aria-label="Fairy dust">🧚‍♀️</span> Summon a New Fairy
+          </button>
         </>
       )}
     </div>
