@@ -321,7 +321,7 @@ function App() {
           <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
             <div className="logo">
               <span className="logo-symbol">🧚‍♀️</span>
-              FairyFinance & MagicMetrics
+              ToothFairy Ledger
             </div>
             <button
               className="btn"
@@ -338,14 +338,14 @@ function App() {
         <div className="container" style={{ maxWidth: "1024px", paddingTop: "78px" }}>
           <section className="magical-bg">
             <h1 className="title">
-              FairyFinance <span style={{ color: COLORS.primary }}>&</span> MagicMetrics
+              ToothFairy Ledger
               {createMagicalIcon()}
             </h1>
             <p className="subtitle">
-              The Whimsical Ledger of Tooth Fairy Delights
+              The Magical Ledger for Tooth Fairy Finances & Dreamy Stats
             </p>
             <div className="description">
-              Track tooth earnings, magical bonuses, and economic adventures of fairyland! Enter every lost tooth, leave enchanted notes, and see magical stats come alive with sparkling charts and fairy audit reports.
+              Track earnings, bonuses, and the economic adventures of fairyland! Enter every lost tooth and watch stats come alive in your magical ledger.
             </div>
           </section>
           {showReport ? (
@@ -357,7 +357,7 @@ function App() {
                 background: `linear-gradient(117deg, #fffbe0 66%, ${COLORS.secondary}22 130%)`,
               }}>
                 <h2 style={{ color: COLORS.accent, fontWeight: "700", fontSize: "2.1rem", marginBottom: "0.9rem", fontFamily: "'Snell Roundhand', cursive" }}>
-                  {createMagicalIcon()} Add Tooth Fairy Ledger Entry
+                  {createMagicalIcon()} Add ToothFairy Ledger Entry
                 </h2>
                 <form onSubmit={addEntry} id="fairy-form">
                   <MagicalInput label="Date" type="date" name="date" value={form.date} onChange={handleInput} required />
@@ -395,7 +395,7 @@ function App() {
                   color: COLORS.secondary, fontSize: "2rem", fontWeight: "800", letterSpacing: ".01em", marginBottom: "1.2em",
                   textShadow: `0 0 8px ${COLORS.accent}66`
                 }}>
-                  {createMagicalIcon()} Magical Tooth Fairy Ledger
+                  {createMagicalIcon()} ToothFairy Ledger
                 </h2>
                 <LedgerTable
                   entries={entries}
@@ -443,7 +443,7 @@ function App() {
       </main>
       <footer style={{ textAlign: "center", color: COLORS.secondary, padding: "38px 0 28px 0", fontWeight: 500 }}>
         <span style={{ fontSize: "1.3em" }}>🦷</span>
-        <span> FairyFinance & MagicMetrics — Powered by tooth fairy magic.</span>
+        <span> ToothFairy Ledger — Powered by tooth fairy magic.</span>
       </footer>
     </div>
   );
@@ -858,7 +858,7 @@ function MagicalReport({ entries, stats, colors, createMagicalIcon }) {
         fontSize: "2.1em",
         marginBottom: ".3em"
       }}>
-        Fairy Ledger Magical Report
+        ToothFairy Ledger Report
       </div>
 
       <div style={{

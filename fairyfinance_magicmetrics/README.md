@@ -1,6 +1,6 @@
-# Lightweight React Template for KAVIA
+# ToothFairy Ledger
 
-This project provides a minimal React template with a clean, modern UI and minimal dependencies.
+This project provides a minimal React template with a clean, magical UI and minimal dependencies, themed for the ToothFairy Ledger.
 
 ## Features
 
