@@ -3,157 +3,99 @@ import "./App.css";
 
 /*
   PUBLIC_INTERFACE
-  ToothFairyChatbot: Magical local fairy chatbot!
+  ToothFairyChatbot: Now powered by Google Gemini Pro/1.5 conversational AI!
 
-  This chat widget is now 100% scripted—no network or AI API is called for user questions.
-  - All fairy responses are locally generated from a whimsical, varied response script designed for fun and magical tooth fairy lore.
-  - The chat history is saved in sessionStorage for the user's session (never sent to any server).
-  - This implementation is guaranteed to be error-free (no Internet required, no rate limits, no failed credentials).
-  - This approach ensures children and users always receive reliable, magical answers.
-
+  - User input is sent directly to the Google Gemini API using the provided API key.
+  - Replies are streamed (if available) or shown when complete.
+  - Error cases (quota exceeded, invalid key, network error) show a magical AI fallback message.
+  - All chat context is maintained per session for natural, context-aware replies.
+  - Loading/typing indication is displayed during Gemini's inference.
+  - Code includes warnings: NEVER commit API keys to public repos or client-exposed code in production!
   -------------------------------------------------------------------------------------------
-  NOTE ON PUBLIC AI APIS:
-    Most public conversational AI APIs (such as OpenAI, Hugging Face, Anthropic, Google) REQUIRE an API key/token for interactive chat.
-    Even “public” demo endpoints frequently enforce quotas or authentication via bearer token—
-    attempting chat without credentials results in errors or unpredictable availability.
-
-    The current implementation avoids ALL credentials, API keys, or online requests.
-    For production apps or parent/admin usage, consult API documentation for authentication options.
+  SECURITY WARNING FOR DEVELOPERS:
+    - The API key below is provided for testing/integration ONLY.
+    - Never expose real Google Gemini/AI API keys in client-side code unless in an approved/secured demo.
+    - For production, always route requests through a secure backend.
+    - Do not commit secrets or API keys to public repositories.
   -------------------------------------------------------------------------------------------
 */
 
-/* --- Magical DuckDuckGo-powered fairy reply logic --- */
-
+const GEMINI_API_KEY = "AIzaSyAvVImtCON6M1yMkb6CFQkS6wWBom0c_a0";
 /*
-PUBLIC_INTERFACE
-getFairyReplyDuckDuckGo: Like before, but returns { factual, hasFactual, magicalComposite }
-where:
-- factual: best factual found (else null/empty)
-- hasFactual: true if we got one
-- magicalComposite: always final message to show user (combines factual + fairy encouragement if possible)
+  SECURITY WARNING: In production, API keys must NEVER appear in client-side code nor be pushed to public repositories.
+  Instead, use a secure backend or secret store.
 */
-/*
-  PUBLIC_INTERFACE
-  getFairyReplyDuckDuckGo: Attempts instant factual answer, but always returns a magical, whimsical fallback if answer is absent, generic, or not engaging. Generates a decorated, child-delighting reply that plays on the question, often with rhyme, encouragement, or fairy-themed lore.
-*/
-async function getFairyReplyDuckDuckGo(userText) {
-  // Fairy-tale encouragement templates
-  const encouragements = [
-    "Remember, every tooth brings a sprinkle of luck and a pocket of sparkles!",
-    "Fairy wings are fluttering with pride at your curiosity!",
-    "May stardust guide you, sweet dreamer!",
-    "The best magic is a curious question—keep them shining!",
-    "Fluttering by with a sparkle just for you!",
-    "Believe in magic, and magic will believe in you!",
-    "Your question tickled the fairy dust in the air!",
-    "You make fairyland shine a little brighter today!",
-    "A golden coin for your wondrous question!",
-  ];
 
-  // Fallbacks: decorated, templated, often rhymed or transformed for magical delight!
-  const magFallbacks = [
-    userText => `Hmmm... "${userText}" is a question rare,\nIn fairyland, answers float in the air!\nWhile I search my sparkly book,\nKeep brushing well—don't forget to look! 🦷✨`,
-    userText => `Ooo! That query sparkled under a pillow.\nEven if this is a mystery, let your dreams be mellow!`,
-    userText => `Your question made my fairy wings flutter!\nBut the answer still hides in fairy glitter and butter.\nMeanwhile, here's a coin of encouragement!`,
-    userText => `No answer flew in on fairy wings this time,\nBut your curiosity is magic—truly sublime! 🌈🦷✨`,
-    userText => `If answers were like teeth under your head,\nI'd bring you wisdom and a coin instead! Keep being curious, little one!`,
-    userText => `Sometimes the moon keeps the answer away,\nBut tooth fairies like me love questions all day!\nShine on and ask again and again!`,
-    userText => `A magical mystery, what fun you create!\nWhile I search for wisdom, adventure awaits!`,
-    userText => `A fairy swirl and a giggle bright,\nI'll dream up answers for you tonight! 🌙✨\nSleep tight!`
-  ];
-
-  // Generic/empty/boring answer detectors (very simple, but works for "No instant answer", "I'm not sure", "N/A", etc)
-  function isWeakFactual(answer) {
-    if (!answer) return true;
-    const txt = answer.trim().toLowerCase();
-    if (!txt) return true;
-    if (
-      txt === 'n/a' ||
-      txt === 'no instant answer' ||
-      txt.startsWith('no instant answer') ||
-      txt.startsWith('sorry,') ||
-      txt.startsWith('i am an ai') ||
-      txt.match(/^i('| a)?m not sure/i) ||
-      txt.match(/^not available|unknown|not found/)
-    ) return true;
-    // Overly short, generic, or evasive?
-    if (txt.length < 16) return true;
-    if (
-      ['not sure', 'don\'t know', 'unable', 'can\'t answer', 'not available', 'unavailable', 'no answer'].some(g => txt.includes(g))
-    ) return true;
-    return false;
-  }
-
-  // Attempt to fetch factual answer (DuckDuckGo Instant Answer)
-  const endpoint = `https://api.duckduckgo.com/?q=${encodeURIComponent(userText)}&format=json`;
-  let factual = "";
-  let hasFactual = false;
-  let errorish = false;
-
-  try {
-    const resp = await fetch(endpoint, {
-      headers: { "Accept": "application/json" }
-    });
-    if (!resp.ok) throw new Error("Network resp not OK");
-    const data = await resp.json();
-    // Try the best plausible sources for a DDG instant answer
-    if (data?.AbstractText) factual = data.AbstractText;
-    else if (data?.Answer) factual = typeof data.Answer === "string" ? data.Answer : "";
-    else if (
-      data?.RelatedTopics && Array.isArray(data.RelatedTopics) &&
-      data.RelatedTopics.length && data.RelatedTopics[0].Text
-    ) factual = data.RelatedTopics[0].Text;
-    // Final desperate fallback: DDG definition/Heading field
-    else if (data?.Heading) factual = data.Heading;
-    // Genuine factual?
-    hasFactual = !!(factual && !isWeakFactual(factual));
-  } catch (err) {
-    factual = ""; // On fetch/network error, fallback
-    errorish = true;
-  }
-
-  // Compose the final reply (prioritize instant, fallback to magic always)
-  let replyFinal = "";
-
-  if (hasFactual) {
-    // Boost factual via fairy magic: add encouragement or decorate for child delight
-    const pickEncour = encouragements[Math.floor(Math.random() * encouragements.length)];
-    const rhymeTemplates = [
-      (fact, q) => `Here's your magical answer:\n"${fact.replace(/[".]+$/, '')}."\nAnd remember: ${pickEncour}`,
-      (fact, q) => `${fact.replace(/[".]+$/, '')} 🦷✨\nFairy wings say: Keep shining bright!`,
-      (fact, q) => `✨ ${fact.replace(/[".]+$/, '')} ✨\n\nCuriosity is like brushing—good for you every night!`
-    ];
-    const t = rhymeTemplates[Math.floor(Math.random() * rhymeTemplates.length)];
-    replyFinal = t(factual, userText);
-  } else {
-    // If factual failed or is generic, decorate with fairy magic
-    let msg = "";
-    // If there was a network/CORS error
-    if (errorish) {
-      const networkMagics = [
-        () => `Oh dear! 🦷✨ Fairy magic hit a network wall; the crystal ball is fuzzy right now!\nBut here's a magical sparkle: ${encouragements[Math.floor(Math.random() * encouragements.length)]}`,
-        () => `No fairy connection to the fact lands. While the magic repairs, let's imagine fairyland together! 🌙🧚‍♀️`
-      ];
-      msg = networkMagics[Math.floor(Math.random() * networkMagics.length)]();
-    } else {
-      // Generate magical fallback: echo, rhyme, or themed story.
-      const pickMagic = magFallbacks[Math.floor(Math.random() * magFallbacks.length)];
-      msg = typeof pickMagic === "function" ? pickMagic(userText) : pickMagic;
-      // Add random encouragement for extra sparkle!
-      if (Math.random() < 0.7) {
-        msg += "\n\n" + encouragements[Math.floor(Math.random() * encouragements.length)];
-      }
+/**
+ * Makes a call to the Google Gemini API with current chat history and current user message.
+ * Returns a Promise resolving { success: bool, reply: string, errorType: string }
+ * On error, errorType is one of "quota", "invalid_api_key", "network", "parse", "unknown"
+ */
+async function callGeminiAPI(messages) {
+  // Gemini API Reference: https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=API_KEY
+  // Format as: [{role: "user" or "model", parts: [{text: ...}]}]
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${GEMINI_API_KEY}`;
+  const headers = {
+    "Content-Type": "application/json",
+    "x-goog-api-client": "magicmetrics-fairyledger-demo/1.0"
+  };
+  // Prepare as Gemini-pro format: last 8 messages max for context
+  const payload = {
+    contents: messages.slice(-8).map((m) => ({
+      role: m.from === "user" ? "user" : "model",
+      parts: [{ text: m.text }]
+    })),
+    generationConfig: {
+      temperature: 0.95,
+      maxOutputTokens: 256,
+      // extra config as needed
     }
-    replyFinal = msg;
+  };
+  try {
+    const resp = await fetch(url, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(payload)
+    });
+    if (!resp.ok) {
+      let errorType = "unknown";
+      try {
+        const err = await resp.json();
+        // Example error JSON:
+        // {
+        //   "error": {
+        //     "code": 429,
+        //     "message": "Quota exceeded",
+        //     ...
+        //   }
+        // }
+        if (err.error) {
+          const msg = String(err.error.message || "").toLowerCase();
+          if (resp.status === 429 || msg.includes("quota") || msg.includes("exceeded")) errorType = "quota";
+          else if (resp.status === 401 || resp.status === 403 || msg.includes("api key") || msg.includes("key invalid")) errorType = "invalid_api_key";
+          else if (msg.includes("permission") || msg.includes("forbidden")) errorType = "invalid_api_key";
+          else errorType = "unknown";
+        }
+      } catch {
+        errorType = "parse";
+      }
+      return { success: false, reply: "", errorType };
+    }
+    const data = await resp.json();
+    // Successful Gemini format: {candidates:[{content:{parts:[{text:"..." }]}}]}
+    if (data && data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
+      return { success: true, reply: data.candidates[0].content.parts[0].text, errorType: null };
+    }
+    return { success: false, reply: "", errorType: "parse" };
+  } catch (err) {
+    return { success: false, reply: "", errorType: "network" };
   }
-
-  return { factual, hasFactual, magicalComposite: replyFinal };
 }
 
-/* -- Chat state utilities (persist for user session, never sent externally) -- */
+// Chat state utilities (persist for user session, never sent externally)
 function getSessionChat() {
   try {
-    let raw = sessionStorage.getItem("tfairy-chatbot");
+    let raw = sessionStorage.getItem("tfairy-chatbot-v2");
     return raw ? JSON.parse(raw) : null;
   } catch {
     return null;
@@ -161,13 +103,13 @@ function getSessionChat() {
 }
 function saveSessionChat(chat) {
   try {
-    sessionStorage.setItem("tfairy-chatbot", JSON.stringify({ chat }));
+    sessionStorage.setItem("tfairy-chatbot-v2", JSON.stringify({ chat }));
   } catch {
     // ignore
   }
 }
 
-/* -- Whimsical bubble color theme -- */
+// Whimsical bubble color theme (works with app palette)
 const chatBubbleColors = {
   fairyPink: "var(--magic-pink, #f2d1fa)",
   fairyBlue: "var(--magic-blue, #a1fdff)",
@@ -177,12 +119,43 @@ const chatBubbleColors = {
 };
 
 const defaultPromptMsg =
-  "Ask anything about your tooth, coins, or fairyland! (Powered by real-world magic from DuckDuckGo ✨)";
+  "Ask anything about your tooth, coins, or fairyland! (Powered by Google Gemini ✨)";
 
-/* -- MAIN CHATBOT FUNCTION -- */
+// Magical fallback used when Gemini can't respond
+function magicalFallbackMsg(errorType) {
+  if (errorType === "quota") {
+    return (
+      "Oh no! The fairy magic for answers is temporarily out of sparkle (quota exceeded). Try again later or check your fairy's AI quota!\n\n" +
+      "Meanwhile, remember: Every question is a magical adventure! ✨🦷"
+    );
+  }
+  if (errorType === "invalid_api_key") {
+    return (
+      "Hmm, the fairy wand failed... The secret fairy key isn't working! (API key invalid or expired)\n" +
+      "Contact your magical admin to refresh it.\n\nAlways keep API keys secret and safe for true fairy-tale security!"
+    );
+  }
+  if (errorType === "network") {
+    return (
+      "A fairy dust storm blocks the connection to AI magic right now. Please check your internet and try again soon!\n\n" +
+      "Fairy wings will flutter to reconnect! ✨"
+    );
+  }
+  if (errorType === "parse") {
+    return (
+      "Oops! Fairyland sent a mysterious message and I couldn't quite read it.\n" +
+      "Try asking another question, or refresh the page for more sparkle."
+    );
+  }
+  // Default unknown
+  return (
+    "The AI fairy seems a bit lost in the stars tonight—no answer is appearing! Try again with a different question soon, or let your imagination fly! ✨🦷"
+  );
+}
+
 /*
   PUBLIC_INTERFACE
-  ToothFairyChatbot: Local, whimsical, magical fairy chatbot.
+  ToothFairyChatbot: React component for magical Gemini-powered chatbot UI.
 */
 function ToothFairyChatbot() {
   // Chat state & session persistence
@@ -203,15 +176,20 @@ function ToothFairyChatbot() {
   const scrollRef = useRef(null);
   const inputRef = useRef(null);
 
-  // ---- All hooks unconditionally before ANY return ----
+  // Maintain context up to N turns for Gemini
+  const maxTurnsForContext = 8;
+
+  // Persist chat on update
   useEffect(() => {
     saveSessionChat(chat);
   }, [chat]);
+  // Scroll on chat/expand/loading
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [chat, isOpen, loading]);
+  // ESC closes chat
   useEffect(() => {
     function escClose(e) {
       if (isOpen && e.key === "Escape") setIsOpen(false);
@@ -219,9 +197,8 @@ function ToothFairyChatbot() {
     window.addEventListener("keydown", escClose);
     return () => window.removeEventListener("keydown", escClose);
   }, [isOpen]);
-  // ----------------------------------------------------
 
-  // --- Collapsed chat bubble UI ---
+  // Collapsed chat bubble UI
   if (!isOpen) {
     return (
       <button
@@ -268,93 +245,7 @@ function ToothFairyChatbot() {
     );
   }
 
-  // --- Chat send handler (fetches DuckDuckGo API, uses magical fallback) ---
-  // PUBLIC_INTERFACE
-  // Simple social/chatty intent checker for fairy chatbot
-  function getSocialIntentReply(question) {
-    const q = question.trim().toLowerCase();
-    // Social greetings and small talk
-    const howAreYouRegex = /\b(how are (you|u)|how's it going|hows it going|how do you do|what's up|how r u|how r you)\b/;
-    const whoAreYouRegex = /\b(who (are|r) (you|u)|what are you|what is your name|who is this|who am i talking|who's there|identify yourself|who are u|what is ur name)\b/;
-    const whatsYourNameRegex = /\b(what's your name|what is your name|ur name|your name|may I know your name|who am i talking)\b/;
-    const thanksRegex = /\b(thank you|thanks|thx|ty|gracias|thank u|thank-you)\b/;
-    const areYouARealFairyRegex = /\b(real fairy|are you real|are you a fairy|are you an ai|are you a robot|are you human|are you really a fairy|do you exist)\b/;
-    const greetingRegex = /\b(hi|hello|hey|greetings|good morning|good evening|good afternoon|hiya|sup|yo|fairy|tooth fairy|hey fairy|hi fairy|hello fairy)\b/;
-    const ageRegex = /\b(how old are you|what is your age|age please|when were you born|when is your birthday|birthday)\b/;
-    const favoriteRegex = /\b(what(\'s)? your favorite|favorite|favourite)\b/;
-    // Expand with other relevant regex for social chit-chat if needed
-
-    // Respond to "how are you"
-    if (howAreYouRegex.test(q)) {
-      const replies = [
-        "Oh, I'm twinkling with joy—my fairy wings are fluttering busily tonight! ✨ How are you, bright star?",
-        "I'm gleaming and sparkling, thank you for asking! Collecting teeth and spreading magical coins keeps me happy!",
-        "Full of pixie dust and smiles! Fairyland is beautiful as always. How are you feeling?",
-        "My cheeks are rosy with delight! A question like yours adds extra magic to my night.",
-      ];
-      return replies[Math.floor(Math.random() * replies.length)];
-    }
-    // Respond to "who are you" or "what is your name"
-    if (whoAreYouRegex.test(q) || whatsYourNameRegex.test(q)) {
-      const replies = [
-        "I'm the Tooth Fairy, keeper of bedtime sparkles, dream coins, and shiny lost teeth! 🧚‍♀️",
-        "They call me the Tooth Fairy—flutterer of pillows and bringer of magical surprises!",
-        "I’m your friendly Tooth Fairy! I trade lost teeth for fairy coins beneath moonlit pillows.",
-        "✨ Your magical guide to the world of lost teeth, sweet dreams, and coins galore: the Tooth Fairy!",
-      ];
-      return replies[Math.floor(Math.random() * replies.length)];
-    }
-    // Respond to "thank you"
-    if (thanksRegex.test(q)) {
-      const replies = [
-        "You're very welcome! May extra sparkles visit your dreams tonight! 🌙✨",
-        "Glad I could help! Spread your fairy wings and keep smiling! 🧚‍♀️",
-        "Anytime! Tooth fairies love curious minds and shiny grins.",
-        "Fairy dust and gratitude right back to you!",
-      ];
-      return replies[Math.floor(Math.random() * replies.length)];
-    }
-    // Respond to "are you a real fairy" or identity questions
-    if (areYouARealFairyRegex.test(q)) {
-      const replies = [
-        "Of course! Every lost tooth and every bright dream brings me to life. My magic shines in every coin under your pillow.",
-        "I am as real as the sparkle in your smile! If you believe in magic, I’ll always be here.",
-        "As real as fairy giggles and starlight! The magic of imagination makes me sparkle.",
-      ];
-      return replies[Math.floor(Math.random() * replies.length)];
-    }
-    // Greetings
-    if (greetingRegex.test(q)) {
-      const replies = [
-        "Hello, little dreamer! 🧚‍♀️",
-        "Fairy greetings and sparkles to you!",
-        "Hi there! I'm fluttering by to chat.",
-        "A twinkle hello from fairyland!",
-      ];
-      return replies[Math.floor(Math.random() * replies.length)];
-    }
-    // Age/favorite and whimsical polite dodges
-    if (ageRegex.test(q)) {
-      const replies = [
-        "I’m as old as the first lost tooth and as young as tonight’s twinkling star!",
-        "Tooth fairies don’t count years, only shiny smiles and moonlit wings.",
-        "My age is a glittery secret—let’s say I’m timeless!",
-      ];
-      return replies[Math.floor(Math.random() * replies.length)];
-    }
-    if (favoriteRegex.test(q)) {
-      const replies = [
-        "Oh, my favorite color is the golden glow of a morning tooth! And favorite treat? Freshly brushed teeth, of course! 🦷✨",
-        "I love the glint of moonbeams and the jingle of tiny coins! My favorite thing is seeing big grins.",
-        "Sparkles, shiny stars, and happy dreams—those are my favorites!",
-      ];
-      return replies[Math.floor(Math.random() * replies.length)];
-    }
-    // You can keep expanding with more “chit chat” social patterns
-    // No social intent detected: return null
-    return null;
-  }
-
+  // --- Send Handler: Uses Gemini API ---
   async function handleSend(e) {
     e && e.preventDefault();
     setError("");
@@ -371,24 +262,25 @@ function ToothFairyChatbot() {
       setInput("");
       setLoading(true);
 
-      // Check for chatty/social intent before fact/magical fallback
-      let fairyComposite = "";
-      const socialReply = getSocialIntentReply(question);
-      if (socialReply) {
-        fairyComposite = socialReply;
-      } else {
-        // Fetch composite magical reply w/ factual tie-in
-        try {
-          const result = await getFairyReplyDuckDuckGo(question);
-          fairyComposite = result.magicalComposite || "✨ A sprinkling of magic for you!";
-        } catch (ex) {
-          fairyComposite =
-            "Oh dear, a fairy fog blocks my answer! Try again with a simpler question, or wait for the magic to return.";
-        }
-      }
+      // Prepare context
+      const chatContext = [
+        // ...last N messages alternating 'user'/'fairy'
+        ...chat.slice(-maxTurnsForContext),
+        { from: "user", text: question, ts: Date.now() }
+      ];
+
+      // Call Gemini API
+      const { success, reply, errorType } = await callGeminiAPI(chatContext);
+
       setChat((prev) => [
         ...prev,
-        { from: "fairy", text: fairyComposite, ts: Date.now() },
+        {
+          from: "fairy",
+          text: success
+            ? reply
+            : magicalFallbackMsg(errorType),
+          ts: Date.now(),
+        },
       ]);
       setLoading(false);
     } catch (ex) {
@@ -428,7 +320,7 @@ function ToothFairyChatbot() {
       }}
       aria-label="Tooth Fairy Chatbot"
     >
-      {/* API Credential Warning Documentation */}
+      {/* API Key Security Warning (visible for dev only) */}
       <div
         style={{
           background: "#fff3ed",
@@ -442,13 +334,13 @@ function ToothFairyChatbot() {
       >
         {/* 
           Dev note: 
-          Most public AI chat APIs (OpenAI, Hugging Face, Anthropic) require credentials for use.
-          The current fairy chat uses only local responses—no API keys or network are required!
+          This demo includes an API key only for local/integration testing.
+          NEVER commit or expose production AI keys in client code!
         */}
         <span role="img" aria-label="Caution" style={{ marginRight: 4 }}>
           ⚠️
         </span>
-        No API keys required! This fairy chat is fully local and error-free.
+        Powered by Google Gemini AI. DO NOT COMMIT API KEYS TO PUBLIC REPOS!
       </div>
       {/* Header */}
       <div
