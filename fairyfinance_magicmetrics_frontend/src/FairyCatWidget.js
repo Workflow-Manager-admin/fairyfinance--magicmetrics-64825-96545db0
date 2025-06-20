@@ -62,9 +62,13 @@ function FairyCatWidget() {
     setUsedMsg(msg);
 
     // Cataas API: /cat/says/{msg}?effect={effect}&fontColor={color}&size={size}&width=368&height=224&json=true
-    let url = `https://cataas.com/cat/says/${encodeURIComponent(msg)}?width=368&height=224&size=${size}&fontColor=${fontColor}&json=true&_cb=${Date.now()}&filter=magic-magic`;
+    // In the previous code, sometimes "filter" or bad query params break the fetch (returns a 404 or bad image response, or CORS)
+    // Also: Cataas sometimes caches, so randomize with _cb. 
+    // Main bug fix: 
+    //  - Don't set filter=magic-magic by default (it's not always valid for Cataas) 
+    //  - Make fetch robust, fallback to default cute cat if API or JSON fails
+    let url = `https://cataas.com/cat/says/${encodeURIComponent(msg)}?width=368&height=224&size=${size}&fontColor=${fontColor}&json=true&_cb=${Date.now()}`;
     if (effect) {
-      // Use either 'filter' or 'effect'
       if (
         ["mono", "sepia", "blur", "negative", "paint", "color", "ascii", "contrast", "edge", "comic", "flowers", "happy"].includes(
           effect
@@ -76,16 +80,29 @@ function FairyCatWidget() {
 
     setLoading(true);
     fetch(url)
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) {
+          // fallback to plain cat
+          throw new Error("Cataas API error");
+        }
+        return res.json();
+      })
       .then((data) => {
-        setImgUrl("https://cataas.com" + data.url);
+        // Defensive: If data.url missing, fallback
+        if (data && data.url) {
+          setImgUrl("https://cataas.com" + data.url);
+        } else {
+          // fallback: generic cute cat
+          setImgUrl("https://cataas.com/cat/cute/says/Fairy%20Cat?width=368&height=224");
+        }
         setLoading(false);
       })
       .catch(() => {
-        setImgUrl("");
+        // Fallback cat image, in case JSON or API fails
+        setImgUrl("https://cataas.com/cat/cute/says/Fairy%20Cat?width=368&height=224");
         setLoading(false);
       });
-  }, []); // Runs at each render
+  }, []); // Only on mount, gets a fresh cat every load!
 
   // Shining sparkles in the magical frame
   function WidgetSparkles() {
@@ -215,6 +232,11 @@ function FairyCatWidget() {
                 filter: "drop-shadow(0 1.5px 9px #ffd70041) drop-shadow(0 0 15px #b47cff11)",
                 margin: "0 auto",
                 backgroundColor: "#fffbe9"
+              }}
+              onError={e => {
+                // If image fails to load (CORS, 404, SSR), fallback static cute cat
+                e.target.onerror = null;
+                e.target.src = "https://cataas.com/cat/cute/says/Fairy%20Cat?width=368&height=224";
               }}
             />
           )
