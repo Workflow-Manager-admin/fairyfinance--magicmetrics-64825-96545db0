@@ -6,6 +6,7 @@ import LedgerDashboard from "./LedgerDashboard";
 import './LedgerDashboard.css';
 import FairyAnimation from "./FairyAnimation";
 import FairyWisdomQuote from "./FairyWisdomQuote";
+import FairyCatWidget from "./FairyCatWidget";
 
 /**
  * Sparkle animation overlay SVG
@@ -100,6 +101,8 @@ function App() {
       <main style={{ zIndex: 2, position: "relative" }}>
         <div className="container">
           <div className="hero">
+            {/* Fairy Cat Widget - Whimsical sparkly Cataas cat! */}
+            <FairyCatWidget />
             {/* Magical Fairy Wisdom Quote Widget */}
             <FairyWisdomQuote />
             <div className="subtitle">

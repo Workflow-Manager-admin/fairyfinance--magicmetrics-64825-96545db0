@@ -22,18 +22,26 @@ javascript modules 1.35 MiB
 asset modules 1010 bytes
   data:image/svg+xml;utf8,<svg width="40" .. 505 bytes [built] [code generated]
   data:image/svg+xml;utf8,<svg width="100".. 506 bytes [built] [code generated]
-webpack 5.99.9 compiled successfully in 1371 ms
+webpack 5.99.9 compiled successfully in 1429 ms
 assets by status 1.98 KiB [cached] 1 asset
-assets by path *.js 1.52 MiB
-  asset bundle.js 1.52 MiB [emitted] (name: main)
-  asset main.39b44d860a26ebc80f7e.hot-update.js 854 bytes [emitted] [immutable] [hmr] (name: main)
+assets by path *.js 1.55 MiB
+  asset bundle.js 1.53 MiB [emitted] (name: main)
+  asset main.39b44d860a26ebc80f7e.hot-update.js 23.9 KiB [emitted] [immutable] [hmr] (name: main)
 asset main.39b44d860a26ebc80f7e.hot-update.json 28 bytes [emitted] [immutable] [hmr]
-Entrypoint main 1.52 MiB = bundle.js 1.52 MiB main.39b44d860a26ebc80f7e.hot-update.js 854 bytes
+Entrypoint main 1.55 MiB = bundle.js 1.53 MiB main.39b44d860a26ebc80f7e.hot-update.js 23.9 KiB
 cached modules 1.34 MiB [cached] 52 modules
 runtime modules 27.6 KiB 14 modules
-./src/FairyWisdomQuote.js 8.29 KiB [built]
-webpack 5.99.9 compiled successfully in 77 ms
-assets by status 1.52 MiB [cached] 2 assets
-cached modules 1.34 MiB (javascript) 27.6 KiB (runtime) [cached] 66 modules
-./src/App.js 9.55 KiB [built]
-webpack 5.99.9 compiled successfully in 88 ms
+javascript modules 15.8 KiB
+  ./src/App.js 9.59 KiB [built] [code generated]
+  ./src/FairyCatWidget.js 6.22 KiB [built] [code generated]
+webpack 5.99.9 compiled successfully in 135 ms
+assets by status 1.98 KiB [cached] 1 asset
+assets by path *.js 1.54 MiB
+  asset bundle.js 1.53 MiB [emitted] (name: main)
+  asset main.034f8f4d643e2f9fc6b0.hot-update.js 15.8 KiB [emitted] [immutable] [hmr] (name: main)
+asset main.034f8f4d643e2f9fc6b0.hot-update.json 28 bytes [emitted] [immutable] [hmr]
+Entrypoint main 1.54 MiB = bundle.js 1.53 MiB main.034f8f4d643e2f9fc6b0.hot-update.js 15.8 KiB
+cached modules 1.34 MiB [cached] 53 modules
+runtime modules 27.6 KiB 14 modules
+./src/App.js 9.69 KiB [built] [code generated]
+webpack 5.99.9 compiled successfully in 69 ms
