@@ -6,6 +6,7 @@ import ToothFairyChatbot from "./ToothFairyChatbot";
 import FairyJokeOrFact from "./FairyJokeOrFact";
 import FairyQuoteCard from "./FairyQuoteCard";
 import FairyWeatherCard from "./FairyWeatherCard";
+import FairySpaceFactCard from "./FairySpaceFactCard";
 
 /*
   Sparkle animation overlay with fairy-dust drift & more varied magical flair!
@@ -483,6 +484,8 @@ function App() {
               </section>
               {/* --- Fairy Weather Card lives low in the layout --- */}
               <FairyWeatherCard />
+              {/* --- Magical Astronomy/Space Fact Card (NASA APOD) --- */}
+              <FairySpaceFactCard />
             </>
           )}
         </div>
