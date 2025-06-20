@@ -1,5 +1,7 @@
 import React from 'react';
 import './App.css';
+import FairyInputForms from './FairyInputForms';
+import './FairyInputForms.css';
 
 /**
  * Sparkle animation overlay SVG
@@ -93,6 +95,8 @@ function App() {
               <span role="img" aria-label="fairy">🧚‍♀️</span> Begin the Magic
             </button>
           </div>
+          {/* Magical, sparkling input forms for age, lost teeth, and dates */}
+          <FairyInputForms />
         </div>
       </main>
 
