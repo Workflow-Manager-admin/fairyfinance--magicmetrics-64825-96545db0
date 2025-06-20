@@ -5,25 +5,28 @@ import MeetAFairy from "./MeetAFairy";
 import ToothFairyChatbot from "./ToothFairyChatbot";
 
 /*
-  Sparkle animation overlay to add magic dust to the background.
+  Sparkle animation overlay with fairy-dust drift & more varied magical flair!
 */
-function MagicSparkleOverlay({ num = 24 }) {
+function MagicSparkleOverlay({ num = 42 }) {
   const [sparkles, setSparkles] = useState([]);
+  // Animate a set of floating sparkles, and re-randomize on every render for movement variety
   useEffect(() => {
-    // randomize initial positions, duration, delays
-    const arr = Array.from({ length: num }).map((_, i) => {
+    const randomSparkle = (index) => {
+      // randomize: some float up, some drift diagonally, layered durations and delays
       const left = Math.random() * 100;
-      const top = 90 + Math.random() * 8;
-      const dur = 2.8 + Math.random() * 2.6;
-      const delay = Math.random() * 5;
-      const scale = 0.7 + Math.random() * 0.75;
-      return { left, top, dur, delay, scale, key: i };
-    });
-    setSparkles(arr);
+      const top = 88 + Math.random() * 10;
+      const driftX = Math.random() < 0.32 ? (Math.random() - 0.5) * 18 : 0;
+      const dur = 2.9 + Math.random() * 3 + (index % 6 ? 0 : 2.1);
+      const delay = Math.random() * 7 + (index % 7 ? 0 : 1.2);
+      const scale = 0.62 + Math.random() * 1.07;
+      const pulse = Math.random() < 0.15;
+      return { left, top, dur, delay, scale, driftX, pulse, key: index };
+    };
+    setSparkles(Array.from({ length: num }).map((_, i) => randomSparkle(i)));
   }, [num]);
   return (
     <div className="sparkle-bg" aria-hidden>
-      {sparkles.map(({ left, top, dur, delay, scale, key }) => (
+      {sparkles.map(({ left, top, dur, delay, scale, driftX, pulse, key }) => (
         <div
           key={key}
           className="sparkle-dot"
@@ -32,7 +35,27 @@ function MagicSparkleOverlay({ num = 24 }) {
             bottom: `${top}%`,
             animationDuration: `${dur}s`,
             animationDelay: `${delay}s`,
-            transform: `scale(${scale})`,
+            transform: `translateX(${driftX}px) scale(${scale})${pulse ? " scale(1.19)" : ""}`,
+            filter: pulse
+              ? "blur(1.2px) drop-shadow(0 0 7px #ffeeb9) brightness(1.22)"
+              : "drop-shadow(0 0 6px #cf6affcc)"
+          }}
+        />
+      ))}
+      {/* Layered fairy shimmer overlay dots for extra fairy dust */}
+      {Array.from({ length: 11 }).map((_, i) => (
+        <div
+          key={"s2-" + i}
+          className="sparkle-dot"
+          style={{
+            left: `${Math.random() * 100}%`,
+            bottom: `${91 + Math.random() * 9}%`,
+            animationDuration: `${2.2 + Math.random() * 2.6}s`,
+            animationDelay: `${Math.random() * 9}s`,
+            transform: `scale(${0.42 + Math.random() * 0.75})`,
+            filter:
+              "blur(4px) drop-shadow(0 0 16px #ffd700cc) hue-rotate(11deg) brightness(1.11)",
+            opacity: 0.58
           }}
         />
       ))}
