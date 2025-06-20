@@ -17,11 +17,32 @@ import "./App.css";
      Always prompt users for the key in secure UI, do not embed or save in code.
 */
 
-// --- Config ---
+/*
+  --- Config ---
 
-// Which OpenAI chat model? gpt-3.5-turbo is fast & sufficient, edit below as needed.
-const OPENAI_CHAT_COMPLETION_URL = "https://api.openai.com/v1/chat/completions";
-const OPENAI_MODEL = "gpt-3.5-turbo";
+  PUBLIC_INTERFACE
+
+  The chat completion endpoint is now set to Hugging Face's free Inference API.
+  We use the conversational model 'microsoft/DialoGPT-medium' as default, which is public (no API key needed for low-rate, non-commercial usage at:
+  https://huggingface.co/microsoft/DialoGPT-medium).
+
+  To use your own (other) model, or to add an API key/bearer token:
+    1. Change HF_API_URL below to a different Hugging Face Inference endpoint or your own endpoint.
+    2. If credentials are ever required, add an 'Authorization' header to the fetch options as:
+          headers: {
+            ...,
+            'Authorization': `Bearer YOUR_HF_API_KEY`
+          }
+    3. You may also change the model name (e.g., 'facebook/blenderbot-400M-distill') for a different style/personality.
+
+  Note: Free usage is subject to public limits and can sometimes be slow/rate-limited (HTTP 429/503).
+        Errors during fetch (rate-limits, service unavailable, other failures) are gracefully handled below.
+*/
+
+const HF_API_URL = "https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium";
+// Optionally change to another public conversational model from HF, e.g.
+// const HF_API_URL = "https://api-inference.huggingface.co/models/facebook/blenderbot-400M-distill";
+// Or, for paid/API-key: add Bearer Authorization header (see comments above)
 
 const chatBubbleColors = {
   fairyPink: "var(--magic-pink, #f2d1fa)",
@@ -34,7 +55,9 @@ const chatBubbleColors = {
 const defaultPromptMsg =
   "Ask anything about your tooth, coins, or fairyland! (Powered by magical AI ✨)";
 
-// Safely persist chat and API key only for the user session (never in file)
+/*
+  Safely persist chat for user session (never in file or on server).
+*/
 function getSessionChat() {
   try {
     let raw = sessionStorage.getItem("tfairy-chatbot");
@@ -43,36 +66,12 @@ function getSessionChat() {
     return null;
   }
 }
-function saveSessionChat(chat, apiKeyMasked) {
+function saveSessionChat(chat) {
   try {
-    sessionStorage.setItem(
-      "tfairy-chatbot",
-      JSON.stringify({ chat, apiKeyMasked })
-    );
+    sessionStorage.setItem("tfairy-chatbot", JSON.stringify({ chat }));
   } catch {
     // ignore
   }
-}
-
-function getSessionApiKey() {
-  try {
-    let raw = sessionStorage.getItem("openai-key");
-    return raw || "";
-  } catch {
-    return "";
-  }
-}
-function saveSessionApiKey(k) {
-  try {
-    if (k) sessionStorage.setItem("openai-key", k);
-    else sessionStorage.removeItem("openai-key");
-  } catch {}
-}
-
-// Simple mask for API key display
-function maskApiKey(key) {
-  if (!key) return "";
-  return key.slice(0, 3) + "****" + key.slice(-4);
 }
 
 // Fallback logic: returns a cute scripted answer if AI fails or no key
@@ -136,13 +135,6 @@ function ToothFairyChatbot() {
       },
     ]
   );
-
-  // API KEY: Never committed! Only in user session.
-  const [apiKey, setApiKey] = useState(getSessionApiKey()); // actual
-  const [apiKeyEntry, setApiKeyEntry] = useState(""); // form value
-  const [apiKeyMasked, setApiKeyMasked] = useState(
-    maskApiKey(getSessionApiKey())
-  );
   const [input, setInput] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -151,23 +143,13 @@ function ToothFairyChatbot() {
 
   // ---- All hooks unconditionally before ANY return ----
   useEffect(() => {
-    saveSessionChat(chat, apiKeyMasked);
-  }, [chat, apiKeyMasked]);
-  useEffect(() => {
-    if (apiKey) saveSessionApiKey(apiKey);
-  }, [apiKey]);
+    saveSessionChat(chat);
+  }, [chat]);
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [chat, isOpen, loading]);
-  useEffect(() => {
-    const k = getSessionApiKey();
-    if (k) {
-      setApiKey(k);
-      setApiKeyMasked(maskApiKey(k));
-    }
-  }, []);
   useEffect(() => {
     function escClose(e) {
       if (isOpen && e.key === "Escape") setIsOpen(false);
@@ -224,195 +206,79 @@ function ToothFairyChatbot() {
     );
   }
 
-  // --- Helper: Send message to OpenAI ---
-  async function sendToOpenAI(question, priorChat, thisApiKey) {
-    // Compose ChatGPT-compatible conversation history
-    const messages = [
-      {
-        role: "system",
-        content:
-          "You are the magical Tooth Fairy. You answer questions as a gentle, delightful, whimsical fairy with a playful and encouraging tone. If the question is about teeth, money, tooth loss, growing up, or fairyland, explain in friendly, kid-safe manner with fairy details. No scary talk, always light, magical, and hopeful. Try to end each message with a fairy emoji or sparkle.",
-      },
-      ...priorChat
-        .map((m) =>
-          m.from === "user"
-            ? { role: "user", content: m.text }
-            : m.from === "fairy"
-            ? { role: "assistant", content: m.text }
-            : null
-        )
-        .filter(Boolean),
-      { role: "user", content: question },
-    ];
-    // POST to OpenAI
-    const body = {
-      model: OPENAI_MODEL,
-      messages,
-      max_tokens: 128,
-      temperature: 0.82,
-      n: 1,
-      stop: null,
+  // --- Helper: Send message to Hugging Face Conversational API ---
+  // PUBLIC_INTERFACE
+  /*
+    Sends a user question & conversation history to Hugging Face Inference API (public conversational model).
+
+    Returns the fairy's reply as a string.
+    Gracefully handles common errors: rate limited, service down, API failures—fallbacks to fairy logic if needed.
+
+    To change endpoint/model or to use credentials:
+      - Edit the HF_API_URL and add 'Authorization' header as shown above if credentials/token needed.
+      - For other models, see https://huggingface.co/models?pipeline_tag=conversational
+  */
+  async function sendToHuggingFace(userText, priorChat) {
+    // Hugging Face expects past_user_inputs and generated_responses in order.
+    const priorUser = priorChat.filter((m) => m.from === "user").map((m) => m.text);
+    const priorFairy = priorChat.filter((m) => m.from === "fairy").map((m) => m.text);
+    const payload = {
+      inputs: {
+        past_user_inputs: priorUser,
+        generated_responses: priorFairy,
+        text: userText,
+      }
     };
     let controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 18000); // 18s safety
     try {
-      const resp = await fetch(OPENAI_CHAT_COMPLETION_URL, {
+      const resp = await fetch(HF_API_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${thisApiKey}`,
+          // If you use a paid Hugging Face Inference endpoint, add Authorization here.
+          // 'Authorization': 'Bearer YOUR_HF_TOKEN'
         },
-        body: JSON.stringify(body),
+        body: JSON.stringify(payload),
         signal: controller.signal,
       });
       clearTimeout(timeout);
+      if (resp.status === 429 || resp.status === 503) {
+        throw new Error(
+          "Too many requests — the fairy API is resting! Please wait a moment and try again."
+        );
+      }
       if (!resp.ok) {
-        let msg = "OpenAI error";
-        if (resp.status === 401 || resp.status === 403) {
-          msg = "Invalid API key! Please enter a correct OpenAI API key.";
-        } else if (resp.status === 429) {
-          msg = "API is rate limited—too many requests or quota reached!";
-        } else if (resp.status === 400) {
-          msg = "Bad request sent to OpenAI…";
-        }
-        const errJson = await resp.json().catch(() => null);
-        throw new Error(errJson?.error?.message || msg);
+        // Try to give user a better message for other HTTP errors
+        let msg = "Public AI chat service is currently unavailable.";
+        let errJson = null;
+        try { errJson = await resp.json(); } catch {}
+        if (errJson && errJson.error) msg = errJson.error;
+        throw new Error(msg);
       }
       const data = await resp.json();
-      let msg =
-        data?.choices?.[0]?.message?.content?.trim() ||
-        fallbackFairyReply(question);
-      return msg;
+      // The reply will be in data.generated_text or data[0].generated_text (for batch)
+      let fairy =
+        data?.generated_text ||
+        (Array.isArray(data) && data[0]?.generated_text) ||
+        fallbackFairyReply(userText);
+      // Sometimes HF models respond too generically or blank
+      if (!fairy || fairy.trim().length < 2) {
+        fairy = fallbackFairyReply(userText);
+      }
+      return fairy;
     } catch (err) {
       clearTimeout(timeout);
-      if (err.name === "AbortError")
+      if (err.name === "AbortError") {
         throw new Error(
-          "Network timeout—OpenAI server is slow or unreachable. Try again!"
+          "Network timeout — the fairy API did not reply in time! Try again."
         );
+      }
       throw err;
     }
   }
 
-  // --- API Key Prompt UI ---
-  function ApiKeyPrompt() {
-    return (
-      <div
-        style={{
-          padding: 20,
-          background: "#fffbe0",
-          borderRadius: 18,
-          border: `2.6px dashed ${chatBubbleColors.fairyAccent}`,
-          margin: 20,
-          marginBottom: 3,
-        }}
-      >
-        <div
-          style={{
-            color: chatBubbleColors.fairyAccent,
-            fontWeight: 700,
-            marginBottom: 8,
-            fontFamily: "'Snell Roundhand', cursive",
-            letterSpacing: ".01em",
-            fontSize: "1.1em",
-          }}
-        >
-          <span role="img" aria-label="Key" style={{ marginRight: 6 }}>
-            🗝️
-          </span>
-          Enter your OpenAI API Key
-        </div>
-        <div
-          style={{
-            color: "#b60e9e",
-            fontSize: ".98em",
-            marginBottom: 8,
-            fontFamily: "inherit",
-            fontWeight: 500,
-            lineHeight: 1.5,
-          }}
-        >
-          Please paste your <b>OpenAI API key</b> (starting with "sk-...") below.
-          <br />
-          <span style={{ color: "#b692f9" }}>
-            <b>Warning:</b> Your key is never saved to our servers or code!
-            Never share it or commit it to Git. Keep it secret and safe.
-          </span>
-        </div>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (!apiKeyEntry.trim().startsWith("sk-")) {
-              setError("Enter a valid OpenAI API key (sk-...)");
-              return;
-            }
-            setApiKey(apiKeyEntry.trim());
-            setApiKeyMasked(maskApiKey(apiKeyEntry.trim()));
-            setApiKeyEntry("");
-            setError(""); // Clear any previous error
-          }}
-          style={{ display: "flex", flexDirection: "column", gap: 8 }}
-        >
-          <input
-            type="password"
-            value={apiKeyEntry}
-            onChange={(e) => setApiKeyEntry(e.target.value)}
-            placeholder="sk-... your OpenAI key"
-            autoComplete="off"
-            aria-label="OpenAI API key"
-            style={{
-              padding: "7px 14px",
-              fontSize: "1em",
-              borderRadius: "9px",
-              border: `1.6px solid ${chatBubbleColors.fairyAccent}`,
-              background: "#fff",
-              fontFamily: "monospace",
-              color: "#6035b7",
-              marginBottom: 6,
-              letterSpacing: "0.12em",
-            }}
-            required
-          />
-          <button
-            type="submit"
-            style={{
-              background: `linear-gradient(120deg, ${chatBubbleColors.fairyBlue} 40%, ${chatBubbleColors.fairyAccent} 100%)`,
-              color: "#fff",
-              fontWeight: "600",
-              border: "none",
-              borderRadius: "19px",
-              padding: "7px 22px",
-              fontSize: "1.02em",
-              cursor: "pointer",
-            }}
-          >
-            Use Key
-          </button>
-        </form>
-        <div
-          style={{
-            marginTop: 12,
-            fontSize: ".91em",
-            color: chatBubbleColors.fairyAccent,
-            background: "#fff9fc",
-            borderRadius: "7px",
-            padding: "6px 8px",
-            lineHeight: 1.5,
-          }}
-        >
-          <b>Don't have a key?</b> Visit&nbsp;
-          <a
-            href="https://platform.openai.com/api-keys"
-            style={{ color: chatBubbleColors.fairyAccent }}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            OpenAI's API settings
-          </a>
-          .
-        </div>
-      </div>
-    );
-  }
+  // -- (removed: API Key Prompt UI block, not required for Hugging Face free endpoint) --
 
   // --- Actual Chat Send Handler ---
   async function handleSend(e) {
@@ -420,10 +286,6 @@ function ToothFairyChatbot() {
     setError("");
     if (!input.trim()) {
       setError("Type your question before sending!");
-      return;
-    }
-    if (!apiKey) {
-      setError("You must enter your OpenAI API key to talk to the fairy!");
       return;
     }
     try {
@@ -436,16 +298,16 @@ function ToothFairyChatbot() {
       setInput("");
       setLoading(true);
 
-      // Send to OpenAI
+      // Send to Hugging Face conversational AI
       const prior = [...chat.filter((m) => m.from)];
       let fairyReply = "";
       try {
-        fairyReply = await sendToOpenAI(question, prior, apiKey);
+        fairyReply = await sendToHuggingFace(question, prior);
       } catch (err) {
         setError(
-          "OpenAI error: " +
+          "Fairy AI error: " +
             (err?.message ||
-              "Could not fetch a fairy answer this time. Please check your API key and network.")
+              "Could not fetch a fairy answer this time. The service might be down or rate-limited.")
         );
         fairyReply = fallbackFairyReply(question);
       }
@@ -554,197 +416,154 @@ function ToothFairyChatbot() {
           ✕
         </button>
       </div>
-      {/* API Key Entry (if missing) */}
-      {!apiKey ? (
-        <ApiKeyPrompt />
-      ) : (
-        <>
-          {/* API key status & reset */}
+      {/* Chat history, input bar, and error messages */}
+      <div
+        ref={scrollRef}
+        style={{
+          flex: 1,
+          padding: "16px 12px 0 13px",
+          background: `linear-gradient(101deg,#fffbe7 80%,${chatBubbleColors.fairyBlue}22 150%)`,
+          overflowY: "auto",
+          minHeight: "170px",
+          maxHeight: "220px",
+        }}
+      >
+        {chat.map((msg, idx) => (
           <div
+            key={idx + (msg.from === "user" ? "-user" : "-fairy")}
             style={{
-              fontSize: ".95em",
-              color: chatBubbleColors.fairyAccent,
-              padding: "3px 13px 0px 13px",
-              background: "#f5dbfd",
-              textAlign: "right",
-            }}
-          >
-            Using key:{" "}
-            <span style={{ background: "#fbeafd", borderRadius: 5, padding: "2px 7px", fontFamily: "monospace" }}>
-              {apiKeyMasked}
-            </span>
-            <button
-              aria-label="Change API Key"
-              title="Change API Key"
-              onClick={() => {
-                setApiKey("");
-                setApiKeyMasked("");
-                setApiKeyEntry("");
-                saveSessionApiKey("");
-              }}
-              style={{
-                background: "transparent",
-                border: "none",
-                color: "#a84fb5",
-                marginLeft: 9,
-                fontSize: "1em",
-                cursor: "pointer",
-                textDecoration: "underline",
-              }}
-            >
-              Change
-            </button>
-          </div>
-          {/* Chat history */}
-          <div
-            ref={scrollRef}
-            style={{
-              flex: 1,
-              padding: "16px 12px 0 13px",
-              background: `linear-gradient(101deg,#fffbe7 80%,${chatBubbleColors.fairyBlue}22 150%)`,
-              overflowY: "auto",
-              minHeight: "170px",
-              maxHeight: "220px",
-            }}
-          >
-            {chat.map((msg, idx) => (
-              <div
-                key={idx + (msg.from === "user" ? "-user" : "-fairy")}
-                style={{
-                  margin: "0.7em 0",
-                  display: "flex",
-                  flexDirection: msg.from === "user" ? "row-reverse" : "row",
-                  alignItems: "flex-end",
-                }}
-              >
-                <div
-                  style={{
-                    background:
-                      msg.from === "fairy"
-                        ? `linear-gradient(123deg, ${chatBubbleColors.fairyViolet}44 90%, #f2d1fa88 100%)`
-                        : `linear-gradient(119deg, #fffbe0 70%, #bb5dfe22 100%)`,
-                    color:
-                      msg.from === "fairy"
-                        ? chatBubbleColors.fairyAccent
-                        : "#6534ae",
-                    borderRadius:
-                      msg.from === "fairy"
-                        ? "16px 29px 12px 22px/20px 24px 12px 18px"
-                        : "22px 12px 22px 14px/20px 24px 22px 17px",
-                    maxWidth: "82%",
-                    padding: "12px 15px 8px 15px",
-                    marginLeft: msg.from === "fairy" ? 0 : "18%",
-                    marginRight: msg.from === "user" ? 0 : "18%",
-                    boxShadow:
-                      msg.from === "fairy"
-                        ? "0 2px 10px #beecff23"
-                        : "0 2px 10px #ffe3fc13",
-                    fontStyle: msg.from === "fairy" ? "italic" : "normal",
-                    fontWeight: msg.from === "fairy" ? 500 : 600,
-                    fontFamily: "'Snell Roundhand', cursive",
-                  }}
-                >
-                  {msg.from === "fairy" && (
-                    <span role="img" aria-label="Fairy" style={{ marginRight: 6 }}>
-                      🧚‍♀️
-                    </span>
-                  )}
-                  <span style={{ whiteSpace: "pre-wrap" }}>{msg.text}</span>
-                </div>
-              </div>
-            ))}
-            {chat.length === 1 && (
-              <div
-                style={{
-                  color: chatBubbleColors.fairyAccent,
-                  margin: "1.2em 0 0.2em 0",
-                  textAlign: "center",
-                  fontSize: "0.97em",
-                }}
-              >
-                {defaultPromptMsg}
-              </div>
-            )}
-            {loading && (
-              <div
-                style={{
-                  color: "#b60e9e",
-                  fontStyle: "italic",
-                  fontFamily: "'Snell Roundhand', cursive",
-                  padding: "0.6em 0.5em",
-                }}
-              >
-                The fairy is thinking... <span style={{ fontSize: "1.1em" }}>✨🦷✨</span>
-              </div>
-            )}
-          </div>
-          {/* Input bar */}
-          <form
-            onSubmit={handleSend}
-            style={{
-              background: "#fff9fc",
-              padding: "8px 13px",
+              margin: "0.7em 0",
               display: "flex",
-              borderTop: `1.8px dashed ${chatBubbleColors.fairyAccent}`,
+              flexDirection: msg.from === "user" ? "row-reverse" : "row",
               alignItems: "flex-end",
-              gap: "0.66em",
             }}
           >
-            <textarea
-              ref={inputRef}
-              aria-label="Type your message to the Tooth Fairy"
-              value={input}
-              rows={1}
-              onChange={(e) => {
-                setInput(e.target.value);
-                if (error) setError("");
-              }}
-              onKeyDown={handleInputKey}
-              placeholder="Type your magical message..."
-              spellCheck={true}
-              disabled={loading}
+            <div
               style={{
-                flex: 1,
-                minHeight: "28px",
-                maxHeight: "52px",
-                borderRadius: "12px",
-                border: `1.2px solid ${chatBubbleColors.fairyAccent}`,
-                resize: "none",
-                fontFamily: "'Snell Roundhand', 'Inter', cursive",
-                padding: "7px 10px",
-                fontSize: "1.01em",
-                boxShadow: error ? "0 2px 8px #ffbdda77" : "none",
-                background: "#fff",
-                color: "#8236c5",
-              }}
-              autoFocus={!loading}
-            />
-            <button
-              type="submit"
-              aria-label="Send"
-              title="Send"
-              disabled={!input.trim() || loading}
-              style={{
-                background: `linear-gradient(120deg, ${chatBubbleColors.fairyBlue} 40%, ${chatBubbleColors.fairyAccent} 100%)`,
-                color: "#fff",
-                fontWeight: "600",
-                border: "none",
-                borderRadius: "29px 12px 19px 29px/14px 17px 29px 13px",
-                padding: "10px 17px",
-                fontSize: "1.3em",
-                cursor: input.trim() && !loading ? "pointer" : "not-allowed",
-                boxShadow: "0 2px 18px 0 #bb5dfe19, 0 0px 3.5px #ffe7e7",
-                opacity: loading ? 0.7 : 1,
+                background:
+                  msg.from === "fairy"
+                    ? `linear-gradient(123deg, ${chatBubbleColors.fairyViolet}44 90%, #f2d1fa88 100%)`
+                    : `linear-gradient(119deg, #fffbe0 70%, #bb5dfe22 100%)`,
+                color:
+                  msg.from === "fairy"
+                    ? chatBubbleColors.fairyAccent
+                    : "#6534ae",
+                borderRadius:
+                  msg.from === "fairy"
+                    ? "16px 29px 12px 22px/20px 24px 12px 18px"
+                    : "22px 12px 22px 14px/20px 24px 22px 17px",
+                maxWidth: "82%",
+                padding: "12px 15px 8px 15px",
+                marginLeft: msg.from === "fairy" ? 0 : "18%",
+                marginRight: msg.from === "user" ? 0 : "18%",
+                boxShadow:
+                  msg.from === "fairy"
+                    ? "0 2px 10px #beecff23"
+                    : "0 2px 10px #ffe3fc13",
+                fontStyle: msg.from === "fairy" ? "italic" : "normal",
+                fontWeight: msg.from === "fairy" ? 500 : 600,
+                fontFamily: "'Snell Roundhand', cursive",
               }}
             >
-              <span role="img" aria-label="Magic sparkle" style={{ marginRight: 2 }}>
-                ✨
-              </span>
-              {loading ? "Magic..." : "Send"}
-            </button>
-          </form>
-        </>
-      )}
+              {msg.from === "fairy" && (
+                <span role="img" aria-label="Fairy" style={{ marginRight: 6 }}>
+                  🧚‍♀️
+                </span>
+              )}
+              <span style={{ whiteSpace: "pre-wrap" }}>{msg.text}</span>
+            </div>
+          </div>
+        ))}
+        {chat.length === 1 && (
+          <div
+            style={{
+              color: chatBubbleColors.fairyAccent,
+              margin: "1.2em 0 0.2em 0",
+              textAlign: "center",
+              fontSize: "0.97em",
+            }}
+          >
+            {defaultPromptMsg}
+          </div>
+        )}
+        {loading && (
+          <div
+            style={{
+              color: "#b60e9e",
+              fontStyle: "italic",
+              fontFamily: "'Snell Roundhand', cursive",
+              padding: "0.6em 0.5em",
+            }}
+          >
+            The fairy is thinking... <span style={{ fontSize: "1.1em" }}>✨🦷✨</span>
+          </div>
+        )}
+      </div>
+      {/* Input bar */}
+      <form
+        onSubmit={handleSend}
+        style={{
+          background: "#fff9fc",
+          padding: "8px 13px",
+          display: "flex",
+          borderTop: `1.8px dashed ${chatBubbleColors.fairyAccent}`,
+          alignItems: "flex-end",
+          gap: "0.66em",
+        }}
+      >
+        <textarea
+          ref={inputRef}
+          aria-label="Type your message to the Tooth Fairy"
+          value={input}
+          rows={1}
+          onChange={(e) => {
+            setInput(e.target.value);
+            if (error) setError("");
+          }}
+          onKeyDown={handleInputKey}
+          placeholder="Type your magical message..."
+          spellCheck={true}
+          disabled={loading}
+          style={{
+            flex: 1,
+            minHeight: "28px",
+            maxHeight: "52px",
+            borderRadius: "12px",
+            border: `1.2px solid ${chatBubbleColors.fairyAccent}`,
+            resize: "none",
+            fontFamily: "'Snell Roundhand', 'Inter', cursive",
+            padding: "7px 10px",
+            fontSize: "1.01em",
+            boxShadow: error ? "0 2px 8px #ffbdda77" : "none",
+            background: "#fff",
+            color: "#8236c5",
+          }}
+          autoFocus={!loading}
+        />
+        <button
+          type="submit"
+          aria-label="Send"
+          title="Send"
+          disabled={!input.trim() || loading}
+          style={{
+            background: `linear-gradient(120deg, ${chatBubbleColors.fairyBlue} 40%, ${chatBubbleColors.fairyAccent} 100%)`,
+            color: "#fff",
+            fontWeight: "600",
+            border: "none",
+            borderRadius: "29px 12px 19px 29px/14px 17px 29px 13px",
+            padding: "10px 17px",
+            fontSize: "1.3em",
+            cursor: input.trim() && !loading ? "pointer" : "not-allowed",
+            boxShadow: "0 2px 18px 0 #bb5dfe19, 0 0px 3.5px #ffe7e7",
+            opacity: loading ? 0.7 : 1,
+          }}
+        >
+          <span role="img" aria-label="Magic sparkle" style={{ marginRight: 2 }}>
+            ✨
+          </span>
+          {loading ? "Magic..." : "Send"}
+        </button>
+      </form>
       {error && (
         <div
           style={{
