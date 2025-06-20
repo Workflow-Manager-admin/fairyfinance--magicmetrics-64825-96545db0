@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import "./App.css";
+import { initOneSignal } from "./onesignal-init";
 
 /*
   Sparkle animation overlay to add magic dust to the background.
@@ -94,6 +95,11 @@ function getNextId(data) {
   Enhanced App component: Fairy gif banner now explicitly loads and displays above all content, with magical styling, instructions, and friendly error/loading states.
 */
 function App() {
+  // Initialize push notifications on first render (fairy magic appears after page load)
+  useEffect(() => {
+    initOneSignal();
+  }, []);
+  
   // Gif fetching for whimsical magical banner
   const { gifUrl, gifAlt, loading: gifLoading, error: gifError } = useFairyGif();
 
