@@ -32,6 +32,10 @@ where:
 - hasFactual: true if we got one
 - magicalComposite: always final message to show user (combines factual + fairy encouragement if possible)
 */
+/*
+  PUBLIC_INTERFACE
+  getFairyReplyDuckDuckGo: Attempts instant factual answer, but always returns a magical, whimsical fallback if answer is absent, generic, or not engaging. Generates a decorated, child-delighting reply that plays on the question, often with rhyme, encouragement, or fairy-themed lore.
+*/
 async function getFairyReplyDuckDuckGo(userText) {
   // Fairy-tale encouragement templates
   const encouragements = [
@@ -45,80 +49,105 @@ async function getFairyReplyDuckDuckGo(userText) {
     "You make fairyland shine a little brighter today!",
     "A golden coin for your wondrous question!",
   ];
-  // Fallback responses if no factual answer can be given.
+
+  // Fallbacks: decorated, templated, often rhymed or transformed for magical delight!
   const magFallbacks = [
-    "Ooo! That question is as rare as a crystal tooth. While the answer floats in fairyland, remember to dream big and keep brushing! ✨🦷✨",
-    "Sometimes the moon hides the answer under a pillow. Keep asking, and magic will happen! 🌙🧚‍♀️",
-    "Even Tooth Fairies don't know everything, but let your smile lead the way!",
-    "No answer flew in on fairy wings this time, but I hope you have a magical day!",
-    "I couldn't pull that answer from my fairy journal, but your question sparkles with imagination!",
-    "If answers were lost teeth, I'd find them all for you! For now, have a sprinkle of fairy encouragement.",
+    userText => `Hmmm... "${userText}" is a question rare,\nIn fairyland, answers float in the air!\nWhile I search my sparkly book,\nKeep brushing well—don't forget to look! 🦷✨`,
+    userText => `Ooo! That query sparkled under a pillow.\nEven if this is a mystery, let your dreams be mellow!`,
+    userText => `Your question made my fairy wings flutter!\nBut the answer still hides in fairy glitter and butter.\nMeanwhile, here's a coin of encouragement!`,
+    userText => `No answer flew in on fairy wings this time,\nBut your curiosity is magic—truly sublime! 🌈🦷✨`,
+    userText => `If answers were like teeth under your head,\nI'd bring you wisdom and a coin instead! Keep being curious, little one!`,
+    userText => `Sometimes the moon keeps the answer away,\nBut tooth fairies like me love questions all day!\nShine on and ask again and again!`,
+    userText => `A magical mystery, what fun you create!\nWhile I search for wisdom, adventure awaits!`,
+    userText => `A fairy swirl and a giggle bright,\nI'll dream up answers for you tonight! 🌙✨\nSleep tight!`
   ];
-  // Attempt to fetch factual answer
+
+  // Generic/empty/boring answer detectors (very simple, but works for "No instant answer", "I'm not sure", "N/A", etc)
+  function isWeakFactual(answer) {
+    if (!answer) return true;
+    const txt = answer.trim().toLowerCase();
+    if (!txt) return true;
+    if (
+      txt === 'n/a' ||
+      txt === 'no instant answer' ||
+      txt.startsWith('no instant answer') ||
+      txt.startsWith('sorry,') ||
+      txt.startsWith('i am an ai') ||
+      txt.match(/^i('| a)?m not sure/i) ||
+      txt.match(/^not available|unknown|not found/)
+    ) return true;
+    // Overly short, generic, or evasive?
+    if (txt.length < 16) return true;
+    if (
+      ['not sure', 'don\'t know', 'unable', 'can\'t answer', 'not available', 'unavailable', 'no answer'].some(g => txt.includes(g))
+    ) return true;
+    return false;
+  }
+
+  // Attempt to fetch factual answer (DuckDuckGo Instant Answer)
   const endpoint = `https://api.duckduckgo.com/?q=${encodeURIComponent(userText)}&format=json`;
-  let reply = "";
+  let factual = "";
   let hasFactual = false;
+  let errorish = false;
+
   try {
     const resp = await fetch(endpoint, {
       headers: { "Accept": "application/json" }
     });
     if (!resp.ok) throw new Error("Network resp not OK");
     const data = await resp.json();
-    // Try the best sources for DDG
-    if (data?.AbstractText) reply = data.AbstractText;
-    else if (data?.Answer) reply = typeof data.Answer === "string" ? data.Answer : "";
+    // Try the best plausible sources for a DDG instant answer
+    if (data?.AbstractText) factual = data.AbstractText;
+    else if (data?.Answer) factual = typeof data.Answer === "string" ? data.Answer : "";
     else if (
-      data?.RelatedTopics &&
-      Array.isArray(data.RelatedTopics) &&
-      data.RelatedTopics.length &&
-      data.RelatedTopics[0].Text
-    )
-      reply = data.RelatedTopics[0].Text;
-    if (
-      typeof reply === "string" &&
-      reply.trim().length > 0 &&
-      !/^no instant answer/i.test(reply)
-    ) {
-      hasFactual = true;
-    }
+      data?.RelatedTopics && Array.isArray(data.RelatedTopics) &&
+      data.RelatedTopics.length && data.RelatedTopics[0].Text
+    ) factual = data.RelatedTopics[0].Text;
+    // Final desperate fallback: DDG definition/Heading field
+    else if (data?.Heading) factual = data.Heading;
+    // Genuine factual?
+    hasFactual = !!(factual && !isWeakFactual(factual));
   } catch (err) {
-    // CORS/network fallback, show gentle error & fallback dialog.
-    if (
-      err && err.message &&
-      (err.message.includes("Failed to fetch") || err.message.includes("Network"))
-    ) {
-      const isHttp = window.location.protocol === "http:";
-      if (isHttp) {
-        reply =
-          "Oh no! Fairy magic hit a wall (CORS network error). " +
-          "The DuckDuckGo Instant Answer API doesn't allow fairy wings to fetch it directly from browsers over HTTP in this magical land. Please try again from a 'secure' fairyland (https/production), or ask your parent for help.";
-        hasFactual = false;
-      } else {
-        reply =
-          "Fairy magic could not reach the answer crystal ball due to a network spell! " +
-          "Try again soon or ask your parent for help. ✨";
-        hasFactual = false;
+    factual = ""; // On fetch/network error, fallback
+    errorish = true;
+  }
+
+  // Compose the final reply (prioritize instant, fallback to magic always)
+  let replyFinal = "";
+
+  if (hasFactual) {
+    // Boost factual via fairy magic: add encouragement or decorate for child delight
+    const pickEncour = encouragements[Math.floor(Math.random() * encouragements.length)];
+    const rhymeTemplates = [
+      (fact, q) => `Here's your magical answer:\n"${fact.replace(/[".]+$/, '')}."\nAnd remember: ${pickEncour}`,
+      (fact, q) => `${fact.replace(/[".]+$/, '')} 🦷✨\nFairy wings say: Keep shining bright!`,
+      (fact, q) => `✨ ${fact.replace(/[".]+$/, '')} ✨\n\nCuriosity is like brushing—good for you every night!`
+    ];
+    const t = rhymeTemplates[Math.floor(Math.random() * rhymeTemplates.length)];
+    replyFinal = t(factual, userText);
+  } else {
+    // If factual failed or is generic, decorate with fairy magic
+    let msg = "";
+    // If there was a network/CORS error
+    if (errorish) {
+      const networkMagics = [
+        () => `Oh dear! 🦷✨ Fairy magic hit a network wall; the crystal ball is fuzzy right now!\nBut here's a magical sparkle: ${encouragements[Math.floor(Math.random() * encouragements.length)]}`,
+        () => `No fairy connection to the fact lands. While the magic repairs, let's imagine fairyland together! 🌙🧚‍♀️`
+      ];
+      msg = networkMagics[Math.floor(Math.random() * networkMagics.length)]();
+    } else {
+      // Generate magical fallback: echo, rhyme, or themed story.
+      const pickMagic = magFallbacks[Math.floor(Math.random() * magFallbacks.length)];
+      msg = typeof pickMagic === "function" ? pickMagic(userText) : pickMagic;
+      // Add random encouragement for extra sparkle!
+      if (Math.random() < 0.7) {
+        msg += "\n\n" + encouragements[Math.floor(Math.random() * encouragements.length)];
       }
     }
+    replyFinal = msg;
   }
-  // Compose the output message (blend factual with magic or pure magic fallback)
-  let magicalComposite = "";
-  if (hasFactual) {
-    // Weave fairy encouragement into factual answer
-    const e = encouragements[Math.floor(Math.random() * encouragements.length)];
-    magicalComposite =
-      reply.replace(/(\.|\!|\?|$)/, "$1") +
-      " " + e;
-  } else if (reply && reply.startsWith("Oh no! Fairy magic hit a wall")) {
-    // CORS/network info as primary; add gentle encouragement
-    magicalComposite = reply + " " + encouragements[Math.floor(Math.random() * encouragements.length)];
-  } else if (reply && reply.startsWith("Fairy magic could not reach")) {
-    magicalComposite = reply + " " + encouragements[Math.floor(Math.random() * encouragements.length)];
-  } else {
-    // Otherwise, fallback fully to local fairy-tale style
-    magicalComposite = magFallbacks[Math.floor(Math.random() * magFallbacks.length)];
-  }
-  return { factual: reply, hasFactual, magicalComposite };
+
+  return { factual, hasFactual, magicalComposite: replyFinal };
 }
 
 /* -- Chat state utilities (persist for user session, never sent externally) -- */
