@@ -24,36 +24,49 @@ import "./App.css";
 
 /* --- Magical DuckDuckGo-powered fairy reply logic --- */
 
-// PUBLIC_INTERFACE
+/*
+PUBLIC_INTERFACE
+getFairyReplyDuckDuckGo: Like before, but returns { factual, hasFactual, magicalComposite }
+where:
+- factual: best factual found (else null/empty)
+- hasFactual: true if we got one
+- magicalComposite: always final message to show user (combines factual + fairy encouragement if possible)
+*/
 async function getFairyReplyDuckDuckGo(userText) {
-  /**
-   * Returns a magical reply based on DuckDuckGo Instant Answer API.
-   * Fallbacks to whimsy if API returns nothing useful or is unreachable.
-   */
-  // CORS: Try fetching directly; handle errors/fallback.
-  const endpoint = `https://api.duckduckgo.com/?q=${encodeURIComponent(userText)}&format=json`;
-  const magFallbacks = [
-    "Every question is a sprinkle of curiosity! Fairy wings are always near—ask anything about teeth magic!",
-    "That's a sparkly question! Fairyland is full of surprises—just like you!",
-    "I may not know everything, but I do know a little fairy dust helps every day!",
-    "If you believe, magic is always close… Ask me about teeth, coins, or fairies!",
-    "Flutter flutter! Sometimes even fairies don't know the answer, but they do know how to sparkle!",
+  // Fairy-tale encouragement templates
+  const encouragements = [
+    "Remember, every tooth brings a sprinkle of luck and a pocket of sparkles!",
+    "Fairy wings are fluttering with pride at your curiosity!",
+    "May stardust guide you, sweet dreamer!",
+    "The best magic is a curious question—keep them shining!",
+    "Fluttering by with a sparkle just for you!",
+    "Believe in magic, and magic will believe in you!",
+    "Your question tickled the fairy dust in the air!",
+    "You make fairyland shine a little brighter today!",
+    "A golden coin for your wondrous question!",
   ];
+  // Fallback responses if no factual answer can be given.
+  const magFallbacks = [
+    "Ooo! That question is as rare as a crystal tooth. While the answer floats in fairyland, remember to dream big and keep brushing! ✨🦷✨",
+    "Sometimes the moon hides the answer under a pillow. Keep asking, and magic will happen! 🌙🧚‍♀️",
+    "Even Tooth Fairies don't know everything, but let your smile lead the way!",
+    "No answer flew in on fairy wings this time, but I hope you have a magical day!",
+    "I couldn't pull that answer from my fairy journal, but your question sparkles with imagination!",
+    "If answers were lost teeth, I'd find them all for you! For now, have a sprinkle of fairy encouragement.",
+  ];
+  // Attempt to fetch factual answer
+  const endpoint = `https://api.duckduckgo.com/?q=${encodeURIComponent(userText)}&format=json`;
+  let reply = "";
+  let hasFactual = false;
   try {
     const resp = await fetch(endpoint, {
-      headers: {
-        "Accept": "application/json"
-      }
+      headers: { "Accept": "application/json" }
     });
-    // Possible CORS? If fetch status is 0 or opaque, can't access .json():
     if (!resp.ok) throw new Error("Network resp not OK");
     const data = await resp.json();
-
-    // See if we have an answer: prioritize AbstractText, Answer, then RelatedTopics
-    let reply = "";
+    // Try the best sources for DDG
     if (data?.AbstractText) reply = data.AbstractText;
     else if (data?.Answer) reply = typeof data.Answer === "string" ? data.Answer : "";
-    // Also try extracting from a related topic
     else if (
       data?.RelatedTopics &&
       Array.isArray(data.RelatedTopics) &&
@@ -61,34 +74,51 @@ async function getFairyReplyDuckDuckGo(userText) {
       data.RelatedTopics[0].Text
     )
       reply = data.RelatedTopics[0].Text;
-
-    // If we ever hit DDG "No instant answer" string, treat as no result
-    if (typeof reply === "string" && reply.trim().length > 0 && !/^no instant answer/i.test(reply)) {
-      return reply;
+    if (
+      typeof reply === "string" &&
+      reply.trim().length > 0 &&
+      !/^no instant answer/i.test(reply)
+    ) {
+      hasFactual = true;
     }
-    // No meaningful result -- fallback to a fairy magic message
-    return magFallbacks[Math.floor(Math.random() * magFallbacks.length)];
   } catch (err) {
-    // Network or CORS error -- check if probably CORS block
-    if (err && err.message && (err.message.includes("Failed to fetch") || err.message.includes("Network"))) {
-      // Detect likely CORS error by inspecting the fetch error and protocol
-      // If running locally, probably CORS if not on HTTPS
+    // CORS/network fallback, show gentle error & fallback dialog.
+    if (
+      err && err.message &&
+      (err.message.includes("Failed to fetch") || err.message.includes("Network"))
+    ) {
       const isHttp = window.location.protocol === "http:";
       if (isHttp) {
-        // CORS! Notify user
-        return (
+        reply =
           "Oh no! Fairy magic hit a wall (CORS network error). " +
-          "The DuckDuckGo Instant Answer API doesn't allow fairy wings to fetch it directly from browsers over HTTP in this magical land. Please try again from a 'secure' fairyland (https/production), or ask your parent for help."
-        );
+          "The DuckDuckGo Instant Answer API doesn't allow fairy wings to fetch it directly from browsers over HTTP in this magical land. Please try again from a 'secure' fairyland (https/production), or ask your parent for help.";
+        hasFactual = false;
+      } else {
+        reply =
+          "Fairy magic could not reach the answer crystal ball due to a network spell! " +
+          "Try again soon or ask your parent for help. ✨";
+        hasFactual = false;
       }
-      // Otherwise fallback with general error
-      return (
-        "Fairy magic could not reach the answer crystal ball due to a network spell! " +
-        "Try again soon or ask your parent for help. ✨"
-      );
     }
-    return magFallbacks[Math.floor(Math.random() * magFallbacks.length)];
   }
+  // Compose the output message (blend factual with magic or pure magic fallback)
+  let magicalComposite = "";
+  if (hasFactual) {
+    // Weave fairy encouragement into factual answer
+    const e = encouragements[Math.floor(Math.random() * encouragements.length)];
+    magicalComposite =
+      reply.replace(/(\.|\!|\?|$)/, "$1") +
+      " " + e;
+  } else if (reply && reply.startsWith("Oh no! Fairy magic hit a wall")) {
+    // CORS/network info as primary; add gentle encouragement
+    magicalComposite = reply + " " + encouragements[Math.floor(Math.random() * encouragements.length)];
+  } else if (reply && reply.startsWith("Fairy magic could not reach")) {
+    magicalComposite = reply + " " + encouragements[Math.floor(Math.random() * encouragements.length)];
+  } else {
+    // Otherwise, fallback fully to local fairy-tale style
+    magicalComposite = magFallbacks[Math.floor(Math.random() * magFallbacks.length)];
+  }
+  return { factual: reply, hasFactual, magicalComposite };
 }
 
 /* -- Chat state utilities (persist for user session, never sent externally) -- */
@@ -218,7 +248,6 @@ function ToothFairyChatbot() {
       return;
     }
     try {
-      // Show user question immediately
       const question = input.trim();
       setChat((prev) => [
         ...prev,
@@ -227,20 +256,18 @@ function ToothFairyChatbot() {
       setInput("");
       setLoading(true);
 
-      // --- DuckDuckGo API fairy logic ---
-      // Show "thinking" for at least a short moment, but kick off fetch immediately
-      // (Do not use setTimeout for fake delay; instead, await real fetch)
-      let fairyReply = "";
+      // Fetch composite magical reply w/ factual tie-in
+      let fairyComposite = "";
       try {
-        fairyReply = await getFairyReplyDuckDuckGo(question);
+        const result = await getFairyReplyDuckDuckGo(question);
+        fairyComposite = result.magicalComposite || "✨ A sprinkling of magic for you!";
       } catch (ex) {
-        // Network/coding error: fallback
-        fairyReply =
+        fairyComposite =
           "Oh dear, a fairy fog blocks my answer! Try again with a simpler question, or wait for the magic to return.";
       }
       setChat((prev) => [
         ...prev,
-        { from: "fairy", text: fairyReply, ts: Date.now() },
+        { from: "fairy", text: fairyComposite, ts: Date.now() },
       ]);
       setLoading(false);
     } catch (ex) {
