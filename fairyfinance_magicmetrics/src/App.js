@@ -1,5 +1,44 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import "./App.css";
+
+/**
+ * Fetch a random fairy gif from the GIPHY API
+ */
+const GIPHY_API_KEY = "8oCA5PwOu5W3Bam9c5I5UbavJ6XLog2k";
+const GIPHY_RANDOM_URL = `https://api.giphy.com/v1/gifs/random?api_key=${GIPHY_API_KEY}&tag=fairy&rating=pg`;
+
+function useFairyGif() {
+  const [gifUrl, setGifUrl] = useState(null);
+  const [gifAlt, setGifAlt] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    let ignore = false;
+    setLoading(true);
+    fetch(GIPHY_RANDOM_URL)
+      .then((resp) => resp.json())
+      .then((data) => {
+        if (ignore) return;
+        if (data?.data?.images?.downsized_large?.url) {
+          setGifUrl(data.data.images.downsized_large.url);
+          setGifAlt(data.data.title || "Fairy Magic GIF");
+          setError("");
+        } else {
+          setError("Couldn't conjure up fairy magic right now!");
+        }
+        setLoading(false);
+      })
+      .catch(() => {
+        if (ignore) return;
+        setError("Oh no! Fairy dust ran out loading GIF.");
+        setGifUrl(null);
+        setGifAlt("");
+        setLoading(false);
+      });
+    return () => { ignore = true; };
+  }, []);
+  return { gifUrl, gifAlt, loading, error };
+}
 
 // Magical color theme
 const COLORS = {
