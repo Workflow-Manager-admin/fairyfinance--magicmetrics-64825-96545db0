@@ -8,6 +8,7 @@ import FairyAnimation from "./FairyAnimation";
 import FairyWisdomQuote from "./FairyWisdomQuote";
 import FairyCatWidget from "./FairyCatWidget";
 import FairyAvatar from "./FairyAvatar";
+import FairyDesigner from "./FairyDesigner";
 
 /**
  * Sparkle animation overlay SVG
@@ -105,6 +106,10 @@ function App() {
 
       <main style={{ zIndex: 2, position: "relative" }}>
         <div className="container">
+
+          {/* Magical Fairy Designer: Prominent widget for all users */}
+          <FairyDesigner />
+
           <div className="hero">
             {/* Fairy Cat Widget - Whimsical sparkly Cataas cat! */}
             <FairyCatWidget />

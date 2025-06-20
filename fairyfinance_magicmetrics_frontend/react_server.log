@@ -43,3 +43,25 @@ cached modules 1.36 MiB [cached] 54 modules
 runtime modules 27.6 KiB 14 modules
 ./src/FairyCatWidget.js 16.4 KiB [built] [code generated]
 webpack 5.99.9 compiled successfully in 81 ms
+assets by status 1.98 KiB [cached] 1 asset
+assets by path *.js 1.61 MiB
+  asset bundle.js 1.58 MiB [emitted] (name: main)
+  asset main.884911494a6da61ffd71.hot-update.js 38.8 KiB [emitted] [immutable] [hmr] (name: main)
+asset main.884911494a6da61ffd71.hot-update.json 28 bytes [emitted] [immutable] [hmr]
+Entrypoint main 1.61 MiB = bundle.js 1.58 MiB main.884911494a6da61ffd71.hot-update.js 38.8 KiB
+cached modules 1.37 MiB [cached] 54 modules
+runtime modules 27.6 KiB 14 modules
+javascript modules 27.2 KiB
+  ./src/App.js 10.2 KiB [built] [code generated]
+  ./src/FairyDesigner.js 17 KiB [built] [code generated]
+webpack 5.99.9 compiled successfully in 115 ms
+assets by status 1.98 KiB [cached] 1 asset
+assets by path *.js 1.59 MiB
+  asset bundle.js 1.58 MiB [emitted] (name: main)
+  asset main.fdd80ffd498824b37b8a.hot-update.js 16.9 KiB [emitted] [immutable] [hmr] (name: main)
+asset main.fdd80ffd498824b37b8a.hot-update.json 28 bytes [emitted] [immutable] [hmr]
+Entrypoint main 1.59 MiB = bundle.js 1.58 MiB main.fdd80ffd498824b37b8a.hot-update.js 16.9 KiB
+cached modules 1.38 MiB [cached] 55 modules
+runtime modules 27.6 KiB 14 modules
+./src/App.js 10.3 KiB [built] [code generated]
+webpack 5.99.9 compiled successfully in 66 ms
