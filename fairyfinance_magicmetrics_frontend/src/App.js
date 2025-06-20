@@ -5,6 +5,7 @@ import './FairyInputForms.css';
 import LedgerDashboard from "./LedgerDashboard";
 import './LedgerDashboard.css';
 import FairyAnimation from "./FairyAnimation";
+import FairyWisdomQuote from "./FairyWisdomQuote";
 
 /**
  * Sparkle animation overlay SVG
@@ -99,6 +100,8 @@ function App() {
       <main style={{ zIndex: 2, position: "relative" }}>
         <div className="container">
           <div className="hero">
+            {/* Magical Fairy Wisdom Quote Widget */}
+            <FairyWisdomQuote />
             <div className="subtitle">
               Whimsical Wizardry for Enchanted Accounting & Dreamy Metric Reports
             </div>
