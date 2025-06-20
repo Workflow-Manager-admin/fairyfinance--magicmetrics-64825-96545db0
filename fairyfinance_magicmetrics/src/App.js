@@ -53,8 +53,14 @@ function getNextId(data) {
   ).toString();
 }
 
-// PUBLIC_INTERFACE
+/*
+  PUBLIC_INTERFACE
+  Enhanced App component: Fairy gif banner now explicitly loads and displays above all content, with magical styling, instructions, and friendly error/loading states.
+*/
 function App() {
+  // Gif fetching for whimsical magical banner
+  const { gifUrl, gifAlt, loading: gifLoading, error: gifError } = useFairyGif();
+
   // Ledger entry: date, childName, age, toothType, amount, fairyNote
   const [entries, setEntries] = useState([]);
   const [form, setForm] = useState({
@@ -201,10 +207,144 @@ function App() {
     </span>
   );
 
+  // === Fairy Gif Banner Block: ensure visible at very top, above main nav/header ===
+
+  const fairyBannerBlock = (
+    <div
+      style={{
+        width: "100%",
+        background:
+          "linear-gradient(90deg, #f3e6fa 0%, #ffe0fa 45%, #d1f9ff 100%)",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        minHeight: 110,
+        justifyContent: "center",
+        borderBottom: `3px double ${COLORS.accent}`,
+        boxShadow: "0 4px 22px 4px #f5daff47",
+        position: "relative",
+        zIndex: 1002,
+        padding: "12px 0 8px 0"
+      }}
+    >
+      <div style={{
+        fontFamily: "'Snell Roundhand', cursive",
+        color: COLORS.accent,
+        fontSize: "1.24em",
+        textShadow: "0 0 4px #fff,0 2px 12px #ffd70099",
+        marginBottom: 6,
+        fontWeight: 700,
+        letterSpacing: ".05em"
+      }}>
+        {/* Instruction for users */}
+        ✨ Magical Fairy GIF appears here, atop FairyFinance & MagicMetrics! ✨<br />
+        <span style={{
+          fontFamily: "serif",
+          color: COLORS.secondary,
+          fontSize: "0.99em",
+          fontWeight: 500
+        }}>
+          {gifLoading || gifError
+            ? "Look above the golden header to glimpse today's fairy magic!"
+            : "See the enchanting fairy gif above – new sparkle with every reload!"}
+        </span>
+      </div>
+      {/* Loading/Success/Error gif states */}
+      <div style={{
+        minHeight: 50,
+        width: "100%",
+        textAlign: "center",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        marginBottom: 2,
+        position: "relative"
+      }}>
+        {gifLoading && (
+          <div style={{
+            fontSize: "1.4em",
+            color: COLORS.accent,
+            animation: "spin 2.5s linear infinite"
+          }}>
+            <span role="img" aria-label="fairy-sparkle">🧚‍♀️</span>
+            <span style={{
+              marginLeft: 8, color: COLORS.secondary,
+              fontWeight: 600, fontStyle: "italic", fontFamily: "'Snell Roundhand', cursive"
+            }}>Summoning pixie dust...</span>
+          </div>
+        )}
+        {gifError && (
+          <div style={{
+            color: COLORS.secondary,
+            background: "#fff5fd",
+            borderRadius: "17px",
+            border: "2.5px dashed #e5bcff",
+            padding: "10px 34px",
+            margin: "0 auto",
+            fontWeight: 600,
+            fontFamily: "'Snell Roundhand', cursive",
+            textShadow: "0 0 10px #fff,0 2px 9px #ff69b4"
+          }}>
+            🧚‍♀️ Oops! No fairy could be conjured.<br />
+            <span style={{ color: COLORS.accent, fontSize: "1.01em" }}>{gifError}</span>
+            <div style={{ fontSize: "0.98em", color: "#985ca0" }}>
+              Try reloading the page for a fresh sprinkle of magic!
+            </div>
+          </div>
+        )}
+        {!gifLoading && !gifError && gifUrl && (
+          <img
+            src={gifUrl}
+            alt={gifAlt}
+            style={{
+              maxHeight: 95,
+              maxWidth: "98vw",
+              borderRadius: "1.5em 2.2em 0.8em 2.7em",
+              border: `3px solid #ffe0fa`,
+              boxShadow: `0 3px 22px 3px ${COLORS.primary}55,0 0px 0px 10px #e5e5fa33`,
+              background: "#fffdfa",
+              display: "block",
+              margin: "0 auto"
+            }}
+          />
+        )}
+      </div>
+      <style>
+        {`
+        @keyframes spin {
+          0% { transform: rotateZ(0deg);}
+          100% { transform: rotateZ(360deg);}
+        }
+        `}
+      </style>
+    </div>
+  );
+
+
   // PUBLIC_INTERFACE
   return (
-    <div className="app" style={{ minHeight: "100vh", background: "linear-gradient(120deg,#fffbea 0%, #f5daff 80%)", fontFamily: "'Snell Roundhand', 'Inter', 'Roboto', 'Helvetica', 'Arial', cursive, sans-serif" }}>
-      <nav className="navbar" style={{ background: COLORS.primary, borderBottom: `2.5px solid ${COLORS.accent}` }}>
+    <div
+      className="app"
+      style={{
+        minHeight: "100vh",
+        background: "linear-gradient(120deg,#fffbea 0%, #f5daff 80%)",
+        fontFamily:
+          "'Snell Roundhand', 'Inter', 'Roboto', 'Helvetica', 'Arial', cursive, sans-serif"
+      }}
+    >
+      {/* --- Fairy Gif Magical Banner --- */}
+      {fairyBannerBlock}
+      {/* --- Main navigation & rest of app --- */}
+      <nav
+        className="navbar"
+        style={{
+          background: COLORS.primary,
+          borderBottom: `2.5px solid ${COLORS.accent}`,
+          position: "sticky",
+          top: 0,
+          zIndex: 1001
+        }}
+      >
         <div className="container" style={{ maxWidth: "1024px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
             <div className="logo" style={{ fontFamily: "'Snell Roundhand', cursive", color: COLORS.accent }}>
@@ -228,6 +368,7 @@ function App() {
         </div>
       </nav>
       <main>
+        {/* --- rest of app unchanged --- */}
         <div className="container" style={{ maxWidth: "1024px", paddingTop: "110px" }}>
           <section style={magicalBackground}>
             <h1
